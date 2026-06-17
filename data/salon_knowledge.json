@@ -1,0 +1,74 @@
+[
+  {
+    "id": "salon_profile",
+    "category": "General Info",
+    "question": "What is the background and experience of Celine Esthetique?",
+    "answer": "Celine Esthetique City Centre is a luxury beauty salon with 14+ years of experience, 50+ happy customers, 200+ customer reviews, and 4+ professional diplomas. It features a luxury digital presence and a 24/7 online booking system."
+  },
+  {
+    "id": "salon_location",
+    "category": "General Info",
+    "question": "Where is Celine Esthetique located and how can I contact them?",
+    "answer": "The salon is located at Cheneau-de-Bourg Street, Billens Stairs 1, 1003 Lausanne, Switzerland. You can contact them by phone at +4178 949 40 39."
+  },
+  {
+    "id": "target_audience",
+    "category": "General Info",
+    "question": "Who is the target audience of the salon?",
+    "answer": "Celine Esthetique caters to beauty-conscious clients in Switzerland, France, and across Europe."
+  },
+  {
+    "id": "srv_nail_care",
+    "category": "Nail Care",
+    "question": "What nail care treatments do you offer?",
+    "answer": "Our premium nail care services include Manicure, Pedicure, Gel application, Semi-permanent varnish, Nail repair, Nail biting treatment, and Babyboomer installation."
+  },
+  {
+    "id": "srv_hands",
+    "category": "Hands",
+    "question": "What specific hand and nail maintenance services are available?",
+    "answer": "We offer nail Filling for 2, 3, 4, or 5 weeks, Strengthening of natural nails, and complete Removal + application of nail products."
+  },
+  {
+    "id": "srv_feet",
+    "category": "Feet",
+    "question": "What feet and pedicure wellness services do you offer?",
+    "answer": "Our foot care range includes Foot beauty, Foot spa, Professional pedicure, and Simple foot beauty."
+  },
+  {
+    "id": "srv_hair_removal_face",
+    "category": "Hair Removal",
+    "question": "What facial hair removal options do you provide?",
+    "answer": "We provide precise facial hair removal for the Upper lip, Chin, Cheek, Full face, Eyebrow shaping, and a combined Upper lip and face hair removal treatment."
+  },
+  {
+    "id": "srv_hair_removal_body",
+    "category": "Hair Removal",
+    "question": "What body waxing or hair removal services can I book?",
+    "answer": "We offer professional body waxing for Half leg, Full leg, Mid-arm, Armpit, Simple Bikini, Full Bikini, and a comprehensive Full body wax."
+  },
+  {
+    "id": "srv_eyes",
+    "category": "Eyes",
+    "question": "What eyelash and eyebrow treatments are available?",
+    "answer": "We offer premium eyelash extensions, eyelash lifts, and professional eyebrow & eyelash tinting."
+  },
+  {
+    "id": "srv_head_hair",
+    "category": "Head & Hair Wellness",
+    "question": "What hair wellness and scalp treatments do you provide?",
+    "answer": "Our specialized scalp menu features the Head Spa Japanese treatment (60 minutes, CHF 120), Scalp massage, Hair relaxation, Revitalization treatment, and deep Scalp moisturizing."
+  },
+  {
+    "id": "srv_shop",
+    "category": "Shop",
+    "question": "Do you sell any beauty products at your salon?",
+    "answer": "Yes, we feature a beauty products shop selling hand creams, specialized skincare items, and luxury aftercare products directly at the salon and via our online store."
+  },
+  {
+    "id": "policy_booking",
+    "category": "Policy",
+    "question": "How does your booking system work and what is the cancellation policy?",
+    "answer": "Clients have 24/7 online booking access to choose from 30+ services, view real-time time slots, select optional add-ons, and manage their profile. Appointments can be rescheduled or canceled free of charge up to 24 hours before the appointment time."
+  }
+]

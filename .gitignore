@@ -1,0 +1,7 @@
+# Inside root .gitignore file
+.env
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+faiss_index/
