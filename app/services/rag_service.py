@@ -1,35 +1,56 @@
-# app/services/rag_service.py
+import os
+from groq import Groq
 from app.database import vector_db
+from app.config import settings
 
-class RAGService:
-    @staticmethod
-    def process_query(user_message: str):
-        # Query matching vectors from index
-        matched_chunks = vector_db.search_context(user_message, top_k=2)
+def generate_rag_response(user_query: str) -> dict:
+    # 1. Retrieve the closest matching context chunks from local FAISS cache
+    retrieved_chunks = vector_db.search_context(user_query, top_k=2)
+    
+    # 2. Compile matched chunks into a string structure for the model
+    context_text = ""
+    for chunk in retrieved_chunks:
+        context_text += f"Question: {chunk['question']}\nAnswer: {chunk['answer']}\n\n"
         
-        # Build contextual prompt augmentation string
-        context_str = "\n".join([
-            f"- [{chunk['category']}] Q: {chunk['question']} A: {chunk['answer']}"
-            for chunk in matched_chunks
-        ])
-        
-        # Infer core message intent string for routing classification
-        inferred_intent = "general_salon_info"
-        if matched_chunks:
-            primary_cat = matched_chunks[0]["category"].lower()
-            if "nail" in primary_cat:
-                inferred_intent = "service_info"
-            elif "spa" in primary_cat or "hair" in primary_cat:
-                inferred_intent = "service_info"
-            elif "policy" in primary_cat:
-                inferred_intent = "policy_query"
+    system_prompt = (
+        "You are Celine, an elegant, highly professional AI concierge for 'Celine Esthétique'.\n"
+        f"VERIFIED SALON CONTEXT:\n{context_text}"
+    )
+    
+    # 3. Network Safe Execution Flow
+    try:
+        if settings.GROQ_API_KEY and not settings.GROQ_API_KEY.startswith("your_"):
+            groq_client = Groq(api_key=settings.GROQ_API_KEY)
+            completion = groq_client.chat.completions.create(
+                model="llama3-70b-8192",
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_query}
+                ],
+                temperature=0.3,
+                max_tokens=250
+            )
+            ai_reply = completion.choices[0].message.content
+        else:
+            raise ValueError("Offline Mode Fallback triggered.")
+            
+    except Exception:
+        # Offline Luxury Formatting Engine (Failsafe for environment/network blocks)
+        if retrieved_chunks:
+            primary_answer = retrieved_chunks[0]['answer']
+            ai_reply = f"Welcome to Celine Esthétique. {primary_answer} Our specialized team would be delighted to orchestrate this luxurious experience for you. Would you like me to assist you with scheduling an appointment today?"
+        else:
+            ai_reply = "Welcome to Celine Esthétique. I would be absolutely delighted to assist you. Could you please contact our premium salon reception desk directly to arrange your personalized custom package?"
 
-        # Structural mock payload representing Phase 1 offline fulfillment
-        # Phase 2 will plug this context payload directly into the OpenAI completions instance
-        system_response_mock = f"Celine AI Placeholder Response based on Context: {matched_chunks[0]['answer'] if matched_chunks else 'How can I assist you with our luxury services?'}"
+    # 4. Establish structural intent flag mappings
+    intent_flag = "general_salon_info"
+    if any(word in user_query.lower() for word in ["nail", "manicure", "pedicure"]):
+        intent_flag = "service_nails"
+    elif any(word in user_query.lower() for word in ["eye", "lash", "brow"]):
+        intent_flag = "service_eyes"
 
-        return {
-            "reply": system_response_mock,
-            "intent": inferred_intent,
-            "retrieved_context": matched_chunks
-        }
+    return {
+        "reply": ai_reply,
+        "intent": intent_flag,
+        "retrieved_context": retrieved_chunks
+    }
