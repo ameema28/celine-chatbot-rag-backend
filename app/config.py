@@ -10,6 +10,10 @@ class Settings(BaseSettings):
     GROQ_API_KEY: Optional[str] = None
     GROQ_MODEL_NAME: str = "llama-3.3-70b-versatile"
     
+    # Firebase (optional — falls back to in-memory if not configured)
+    FIREBASE_PROJECT_ID: Optional[str] = None
+    FIREBASE_SERVICE_ACCOUNT_PATH: Optional[str] = None
+    
     PROJECT_NAME: str = "Celine Esthetique Luxury AI Backend"
     VERSION: str = "1.0.0"
     EMBEDDING_MODEL_NAME: str = "all-MiniLM-L6-v2"
