@@ -9,7 +9,7 @@
     "id": "salon_location",
     "category": "General Info",
     "question": "Where is Celine Esthetique located and how can I contact them?",
-    "answer": "The salon is located at Cheneau-de-Bourg Street, Billens Stairs 1, 1003 Lausanne, Switzerland. You can contact them by phone at +4178 949 40 39."
+    "answer": "The salon is located at Cheneau-de-Bourg Street, Billens Stairs 1, 1003 Lausanne, Switzerland. You can contact them by phone at +41 78 949 40 39."
   },
   {
     "id": "target_audience",
@@ -18,57 +18,285 @@
     "answer": "Celine Esthetique caters to beauty-conscious clients in Switzerland, France, and across Europe."
   },
   {
+    "id": "salon_hours",
+    "category": "General Info",
+    "question": "What are the salon opening hours?",
+    "answer": "The salon is open Monday to Friday from 9:00 AM to 7:00 PM, and Saturday from 10:00 AM to 5:00 PM. Closed on Sundays."
+  },
+  {
     "id": "srv_nail_care",
     "category": "Nail Care",
     "question": "What nail care treatments do you offer?",
-    "answer": "Our premium nail care services include Manicure, Pedicure, Gel application, Semi-permanent varnish, Nail repair, Nail biting treatment, and Babyboomer installation."
+    "answer": "Our premium nail care services include Manicure (CHF 45, 45 min), Pedicure (CHF 55, 60 min), Gel application (CHF 65, 60 min), Semi-permanent varnish (CHF 50, 45 min), Nail repair (CHF 25, 20 min), Nail biting treatment (CHF 40, 30 min), and Babyboomer installation (CHF 75, 75 min)."
+  },
+  {
+    "id": "srv_manicure_detail",
+    "category": "Nail Care",
+    "question": "What is included in a manicure?",
+    "answer": "Our classic manicure includes nail shaping, cuticle care, hand massage, and polish application. Duration: 45 minutes. Price: CHF 45. Add gel polish for CHF 20 extra."
+  },
+  {
+    "id": "srv_pedicure_detail",
+    "category": "Nail Care",
+    "question": "What is included in a pedicure?",
+    "answer": "Our professional pedicure includes foot soak, exfoliation, nail shaping, cuticle care, callus removal, foot massage, and polish application. Duration: 60 minutes. Price: CHF 55."
+  },
+  {
+    "id": "srv_gel_application",
+    "category": "Nail Care",
+    "question": "What is gel application and how long does it last?",
+    "answer": "Gel application provides a glossy, chip-resistant finish that lasts 2-3 weeks. Includes nail prep, base coat, color, and top coat with UV curing. Duration: 60 minutes. Price: CHF 65. Removal + reapplication package available for CHF 75."
+  },
+  {
+    "id": "srv_semi_permanent",
+    "category": "Nail Care",
+    "question": "What is semi-permanent varnish?",
+    "answer": "Semi-permanent varnish (shellac) offers a long-lasting color finish that stays perfect for 2-3 weeks without chipping. Includes nail prep and UV curing. Duration: 45 minutes. Price: CHF 50."
+  },
+  {
+    "id": "srv_nail_repair",
+    "category": "Nail Care",
+    "question": "What is nail repair treatment?",
+    "answer": "Nail repair treatment fixes cracked, split, or damaged nails using professional strengthening techniques and repair products. Duration: 20 minutes. Price: CHF 25."
+  },
+  {
+    "id": "srv_nail_biting",
+    "category": "Nail Care",
+    "question": "Do you offer treatment for nail biting?",
+    "answer": "Yes, our nail biting treatment includes professional nail reconstruction, strengthening products, and a bitter-tasting protective coating to help break the habit. Duration: 30 minutes. Price: CHF 40."
+  },
+  {
+    "id": "srv_babyboomer",
+    "category": "Nail Care",
+    "question": "What is Babyboomer installation?",
+    "answer": "Babyboomer is a trendy ombre nail design that transitions from natural pink to white tips. It is created using gel or acrylic techniques. Duration: 75 minutes. Price: CHF 75."
   },
   {
     "id": "srv_hands",
     "category": "Hands",
     "question": "What specific hand and nail maintenance services are available?",
-    "answer": "We offer nail Filling for 2, 3, 4, or 5 weeks, Strengthening of natural nails, and complete Removal + application of nail products."
+    "answer": "We offer nail Filling for 2, 3, 4, or 5 weeks (CHF 35-50), Strengthening of natural nails (CHF 40, 30 min), and complete Removal + application of nail products (CHF 75, 60 min)."
+  },
+  {
+    "id": "srv_nail_filling",
+    "category": "Hands",
+    "question": "What is nail filling and how often should I do it?",
+    "answer": "Nail filling maintains the growth area of gel or acrylic nails as your natural nails grow. Recommended every 2-3 weeks. Prices: 2 weeks CHF 35, 3 weeks CHF 40, 4 weeks CHF 45, 5 weeks CHF 50. Duration: 30-45 minutes."
+  },
+  {
+    "id": "srv_strengthening",
+    "category": "Hands",
+    "question": "What is natural nail strengthening treatment?",
+    "answer": "Our strengthening treatment uses protein-rich formulas and keratin boosters to reinforce weak, brittle nails. Includes hand massage with nourishing cream. Duration: 30 minutes. Price: CHF 40."
+  },
+  {
+    "id": "srv_removal_application",
+    "category": "Hands",
+    "question": "Do you offer removal and reapplication of nail products?",
+    "answer": "Yes, we provide safe removal of gel, acrylic, or semi-permanent products followed by fresh application. Includes nail recovery treatment. Duration: 60 minutes. Price: CHF 75."
   },
   {
     "id": "srv_feet",
     "category": "Feet",
     "question": "What feet and pedicure wellness services do you offer?",
-    "answer": "Our foot care range includes Foot beauty, Foot spa, Professional pedicure, and Simple foot beauty."
+    "answer": "Our foot care range includes Foot beauty (CHF 45, 45 min), Foot spa (CHF 65, 60 min), Professional pedicure (CHF 55, 60 min), and Simple foot beauty (CHF 35, 30 min)."
+  },
+  {
+    "id": "srv_foot_spa",
+    "category": "Feet",
+    "question": "What is included in the Foot Spa treatment?",
+    "answer": "Our luxury Foot Spa includes aromatic foot soak, sea salt exfoliation, callus removal, moisturizing mask, extended foot and lower leg massage, and polish application. Duration: 60 minutes. Price: CHF 65."
+  },
+  {
+    "id": "srv_simple_foot",
+    "category": "Feet",
+    "question": "What is simple foot beauty?",
+    "answer": "Simple foot beauty includes nail trimming, basic cuticle care, and light moisturizing. Perfect for maintenance between full pedicures. Duration: 30 minutes. Price: CHF 35."
   },
   {
     "id": "srv_hair_removal_face",
     "category": "Hair Removal",
     "question": "What facial hair removal options do you provide?",
-    "answer": "We provide precise facial hair removal for the Upper lip, Chin, Cheek, Full face, Eyebrow shaping, and a combined Upper lip and face hair removal treatment."
+    "answer": "We provide precise facial hair removal for the Upper lip (CHF 15, 10 min), Chin (CHF 15, 10 min), Cheek (CHF 20, 15 min), Full face (CHF 50, 30 min), Eyebrow shaping (CHF 25, 15 min), and a combined Upper lip and face hair removal treatment (CHF 55, 35 min)."
+  },
+  {
+    "id": "srv_eyebrow_shaping",
+    "category": "Hair Removal",
+    "question": "What is eyebrow shaping?",
+    "answer": "Our eyebrow shaping includes precise waxing or threading to define your natural arch, followed by soothing aloe vera gel application. Duration: 15 minutes. Price: CHF 25."
+  },
+  {
+    "id": "srv_full_face_wax",
+    "category": "Hair Removal",
+    "question": "What is included in full face hair removal?",
+    "answer": "Full face waxing includes upper lip, chin, cheeks, and sideburns. Uses hypoallergenic warm wax suitable for sensitive facial skin. Duration: 30 minutes. Price: CHF 50."
   },
   {
     "id": "srv_hair_removal_body",
     "category": "Hair Removal",
     "question": "What body waxing or hair removal services can I book?",
-    "answer": "We offer professional body waxing for Half leg, Full leg, Mid-arm, Armpit, Simple Bikini, Full Bikini, and a comprehensive Full body wax."
+    "answer": "We offer professional body waxing for Half leg (CHF 40, 30 min), Full leg (CHF 70, 45 min), Mid-arm (CHF 30, 20 min), Armpit (CHF 20, 15 min), Simple Bikini (CHF 35, 20 min), Full Bikini (CHF 55, 30 min), and a comprehensive Full body wax (CHF 180, 90 min)."
+  },
+  {
+    "id": "srv_full_leg_wax",
+    "category": "Hair Removal",
+    "question": "What is full leg waxing?",
+    "answer": "Full leg waxing removes hair from the top of the thigh to the toes. Uses premium warm wax with pre and post-treatment soothing oils. Duration: 45 minutes. Price: CHF 70."
+  },
+  {
+    "id": "srv_half_leg_wax",
+    "category": "Hair Removal",
+    "question": "What is half leg waxing?",
+    "answer": "Half leg waxing covers either the lower leg (knee to ankle) or upper leg (thigh to knee). Duration: 30 minutes. Price: CHF 40."
+  },
+  {
+    "id": "srv_full_bikini",
+    "category": "Hair Removal",
+    "question": "What is the difference between simple and full bikini wax?",
+    "answer": "Simple bikini (CHF 35, 20 min) removes hair along the bikini line. Full bikini (CHF 55, 30 min) is a more comprehensive Brazilian-style treatment. Both use sensitive-skin wax formulas."
+  },
+  {
+    "id": "srv_full_body_wax",
+    "category": "Hair Removal",
+    "question": "What is included in full body wax?",
+    "answer": "Full body wax includes full legs, arms, underarms, bikini area, and back (if needed). Includes pre-treatment oil and post-treatment soothing aloe gel. Duration: 90 minutes. Price: CHF 180."
+  },
+  {
+    "id": "srv_armpit_wax",
+    "category": "Hair Removal",
+    "question": "What is armpit waxing?",
+    "answer": "Quick and effective hair removal for the underarm area using gentle warm wax. Duration: 15 minutes. Price: CHF 20."
   },
   {
     "id": "srv_eyes",
     "category": "Eyes",
     "question": "What eyelash and eyebrow treatments are available?",
-    "answer": "We offer premium eyelash extensions, eyelash lifts, and professional eyebrow & eyelash tinting."
+    "answer": "We offer premium eyelash extensions (CHF 120, 90 min), eyelash lifts (CHF 65, 45 min), and professional eyebrow & eyelash tinting (CHF 35, 20 min)."
+  },
+  {
+    "id": "srv_eyelash_extensions",
+    "category": "Eyes",
+    "question": "What are eyelash extensions and how long do they last?",
+    "answer": "Individual synthetic or mink lashes are applied one-by-one to your natural lashes for a fuller, longer look. Lasts 3-4 weeks with proper care. Duration: 90 minutes. Price: CHF 120. Fill available at CHF 60."
+  },
+  {
+    "id": "srv_eyelash_lift",
+    "category": "Eyes",
+    "question": "What is an eyelash lift?",
+    "answer": "A perming technique that curls your natural lashes upward, creating the appearance of longer, fuller lashes without extensions. Lasts 6-8 weeks. Duration: 45 minutes. Price: CHF 65."
+  },
+  {
+    "id": "srv_eyelash_tinting",
+    "category": "Eyes",
+    "question": "What is eyebrow and eyelash tinting?",
+    "answer": "Semi-permanent vegetable dye is applied to darken lashes and brows, enhancing definition without makeup. Lasts 3-4 weeks. Duration: 20 minutes. Price: CHF 35."
   },
   {
     "id": "srv_head_hair",
     "category": "Head & Hair Wellness",
     "question": "What hair wellness and scalp treatments do you provide?",
-    "answer": "Our specialized scalp menu features the Head Spa Japanese treatment (60 minutes, CHF 120), Scalp massage, Hair relaxation, Revitalization treatment, and deep Scalp moisturizing."
+    "answer": "Our specialized scalp menu features the Head Spa Japanese treatment (60 minutes, CHF 120), Scalp massage (CHF 55, 30 min), Hair relaxation (CHF 45, 30 min), Revitalization treatment (CHF 85, 45 min), and deep Scalp moisturizing (CHF 50, 30 min)."
+  },
+  {
+    "id": "srv_head_spa_japanese",
+    "category": "Head & Hair Wellness",
+    "question": "What is the Head Spa Japanese treatment?",
+    "answer": "A deeply relaxing Japanese-inspired head spa that includes scalp analysis, aromatherapy steam, deep cleansing shampoo, acupressure scalp massage, nourishing mask, and blow-dry. Improves circulation and scalp health. Duration: 60 minutes. Price: CHF 120."
+  },
+  {
+    "id": "srv_scalp_massage",
+    "category": "Head & Hair Wellness",
+    "question": "What is scalp massage treatment?",
+    "answer": "Therapeutic massage using essential oils to stimulate blood flow, reduce tension, and promote hair growth. Includes hot towel treatment. Duration: 30 minutes. Price: CHF 55."
+  },
+  {
+    "id": "srv_hair_revitalization",
+    "category": "Head & Hair Wellness",
+    "question": "What is hair revitalization treatment?",
+    "answer": "Intensive treatment using keratin and collagen masks to restore damaged hair, improve shine, and strengthen strands. Includes steam treatment. Duration: 45 minutes. Price: CHF 85."
+  },
+  {
+    "id": "srv_scalp_moisturizing",
+    "category": "Head & Hair Wellness",
+    "question": "What is scalp moisturizing treatment?",
+    "answer": "Deep hydration treatment for dry, flaky scalp using hyaluronic acid and botanical extracts. Soothes irritation and restores balance. Duration: 30 minutes. Price: CHF 50."
+  },
+  {
+    "id": "srv_hair_relaxation",
+    "category": "Head & Hair Wellness",
+    "question": "What is hair relaxation treatment?",
+    "answer": "Gentle treatment using calming essential oils and a soothing scalp massage to relieve stress and tension. Includes light hair brushing and aromatherapy. Duration: 30 minutes. Price: CHF 45."
   },
   {
     "id": "srv_shop",
     "category": "Shop",
     "question": "Do you sell any beauty products at your salon?",
-    "answer": "Yes, we feature a beauty products shop selling hand creams, specialized skincare items, and luxury aftercare products directly at the salon and via our online store."
+    "answer": "Yes, we feature a beauty products shop selling luxury hand creams (CHF 25-45), specialized skincare items (CHF 35-85), and premium aftercare products (CHF 20-60) directly at the salon and via our online store."
+  },
+  {
+    "id": "srv_hand_creams",
+    "category": "Shop",
+    "question": "What hand creams do you sell?",
+    "answer": "We offer premium hand creams with shea butter, vitamin E, and collagen. Brands include our exclusive Celine Esthetique line. Prices: CHF 25-45."
+  },
+  {
+    "id": "srv_skincare_products",
+    "category": "Shop",
+    "question": "What skincare products are available?",
+    "answer": "Our skincare range includes cleansers (CHF 35), serums (CHF 55-85), moisturizers (CHF 45-65), and masks (CHF 25-40). All products are dermatologically tested and suitable for sensitive skin."
+  },
+  {
+    "id": "srv_aftercare_products",
+    "category": "Shop",
+    "question": "What aftercare products do you recommend?",
+    "answer": "We sell aftercare products for nail treatments (cuticle oil CHF 20, strengthening serum CHF 35), lash care (lash sealant CHF 25), and waxing (soothing aloe gel CHF 20)."
   },
   {
     "id": "policy_booking",
     "category": "Policy",
     "question": "How does your booking system work and what is the cancellation policy?",
     "answer": "Clients have 24/7 online booking access to choose from 30+ services, view real-time time slots, select optional add-ons, and manage their profile. Appointments can be rescheduled or canceled free of charge up to 24 hours before the appointment time."
+  },
+  {
+    "id": "policy_deposit",
+    "category": "Policy",
+    "question": "Do you require a deposit for appointments?",
+    "answer": "A 20% deposit is required for luxury services (Head Spa Japanese, eyelash extensions, full body wax, Babyboomer installation, semi-permanent varnish, gel application). No deposit is required for standard services."
+  },
+  {
+    "id": "policy_discounts",
+    "category": "Policy",
+    "question": "Do you offer any discounts or promotions?",
+    "answer": "Yes, we offer a 10% discount for VIP clients and a 15% discount for first-time clients. These discounts apply to all services except already-discounted packages."
+  },
+  {
+    "id": "policy_payment",
+    "category": "Policy",
+    "question": "What payment methods do you accept?",
+    "answer": "We accept cash, credit/debit cards (Visa, Mastercard, Amex), Twint, and online payment via Stripe for deposits. Payment is due at the time of service unless a deposit has already been paid."
+  },
+  {
+    "id": "policy_aftercare_nails",
+    "category": "Aftercare",
+    "question": "What is the aftercare for nail treatments?",
+    "answer": "After nail treatments: avoid water for 2 hours, wear gloves for household chores, apply cuticle oil daily, and schedule fills every 2-3 weeks. For gel nails, avoid picking or peeling."
+  },
+  {
+    "id": "policy_aftercare_wax",
+    "category": "Aftercare",
+    "question": "What is the aftercare for waxing?",
+    "answer": "After waxing: avoid hot showers, saunas, and swimming for 24 hours. Do not apply perfumed products to the area. Exfoliate gently after 48 hours to prevent ingrown hairs. Moisturize daily."
+  },
+  {
+    "id": "policy_aftercare_lashes",
+    "category": "Aftercare",
+    "question": "What is the aftercare for eyelash extensions?",
+    "answer": "After eyelash extensions: keep lashes dry for 24 hours, avoid oil-based products near the eyes, brush daily with a spoolie, and avoid rubbing or pulling. Fill appointments recommended every 3-4 weeks."
+  },
+  {
+    "id": "policy_aftercare_head_spa",
+    "category": "Aftercare",
+    "question": "What is the aftercare for Head Spa treatment?",
+    "answer": "After Head Spa: avoid washing hair for 12 hours to allow nourishing products to penetrate. Use sulfate-free shampoo. Sleep on a silk pillowcase to maintain scalp moisture."
   }
 ]

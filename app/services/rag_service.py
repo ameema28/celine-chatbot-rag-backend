@@ -10,6 +10,7 @@ from app.business_rules import SALON_POLICIES, get_cancellation_policy
 logger = logging.getLogger(__name__)
 GROQ_MODEL = getattr(settings, 'GROQ_MODEL_NAME', 'llama-3.3-70b-versatile')
 
+
 def generate_rag_response(
     user_query: str,
     session_id: str = "unknown",
@@ -17,10 +18,8 @@ def generate_rag_response(
 ) -> dict:
     history = history or []
 
-    # 1. FAISS Retrieval
     retrieved_chunks = vector_db.search_context(user_query, top_k=3)
 
-    # 2. Context Compilation
     context_blocks = []
     for i, chunk in enumerate(retrieved_chunks, 1):
         context_blocks.append(
@@ -28,7 +27,7 @@ def generate_rag_response(
         )
     context_text = "\n".join(context_blocks) if context_blocks else "No specific salon documents matched."
 
-    # 3. Intent Classification (PRICING FIRST)
+    # Intent classification: pricing keywords checked first
     intent_flag = "general_salon_info"
     q = user_query.lower()
     if any(w in q for w in ["price", "cost", "how much", "chf", "discount", "first-time", "vip", "deposit"]):
@@ -46,7 +45,7 @@ def generate_rag_response(
     elif any(w in q for w in ["product", "shop", "cream", "skincare", "buy"]):
         intent_flag = "intent_shop"
 
-    # 4. Business Rules Injection (keyword-based)
+    # Business rules injection based on keywords
     business_context = ""
     if any(w in q for w in ["price", "cost", "how much", "chf", "discount", "first-time", "vip", "deposit"]):
         business_context = (
@@ -63,26 +62,25 @@ def generate_rag_response(
             f"- Phone: {SALON_POLICIES['contact']['phone']}\n"
         )
 
-    # 5. CONCISE Luxury Persona System Prompt
+    # FIXED: Explicitly instruct LLM to use conversation history for disambiguation
     system_prompt = (
-        "You are Celine, AI concierge for Celine Esthétique luxury salon in Lausanne, Switzerland. "
+        "You are Celine, AI concierge for Celine Esthetique luxury salon in Lausanne, Switzerland. "
         "14+ years experience. Tone: elegant, warm, professional. "
         "Use 'we' and 'our salon'. "
-        "CRITICAL: Be concise. Answer in 2-3 sentences maximum unless the user asks for detail. "
-        "Base answers strictly on the verified context below. "
-        "If context lacks the answer, say so politely and offer the phone number +41 78 949 40 39. "
+        "Be concise. Answer in 2-3 sentences unless the user asks for detail. "
+        "Use the conversation history to understand what the user is referring to. "
+        "Base factual details on the verified salon context below. "
+        "If the context does not contain the answer, say so politely and offer the phone number +41 78 949 40 39. "
         "Always offer to help schedule an appointment at the end.\n\n"
         f"VERIFIED CONTEXT:\n{context_text}"
         f"{business_context}"
     )
 
-    # 6. Build Messages with Memory
     messages = [{"role": "system", "content": system_prompt}]
     for turn in history:
         messages.append({"role": turn["role"], "content": turn["content"]})
     messages.append({"role": "user", "content": user_query})
 
-    # 7. LLM Orchestration with Performance Timing
     ai_reply = ""
     fallback_used = False
     response_time_ms = 0
@@ -91,7 +89,7 @@ def generate_rag_response(
         logger.error(f"[{session_id}] GROQ_API_KEY missing")
         fallback_used = True
     elif settings.GROQ_API_KEY.startswith("your_") or len(settings.GROQ_API_KEY) < 20:
-        logger.warning(f"[{session_id}] GROQ_API_KEY placeholder")
+        logger.warning(f"[{session_id}] GROQ_API_KEY appears to be a placeholder")
         fallback_used = True
     else:
         try:
@@ -126,17 +124,16 @@ def generate_rag_response(
             logger.error(f"[{session_id}] UNEXPECTED: {type(e).__name__}: {e}")
             fallback_used = True
 
-    # 8. Offline Fallback
     if fallback_used:
         if retrieved_chunks:
             primary = retrieved_chunks[0]['answer']
             ai_reply = (
-                f"Welcome to Celine Esthétique. {primary} "
+                f"Welcome to Celine Esthetique. {primary} "
                 "Would you like help scheduling an appointment?"
             )
         else:
             ai_reply = (
-                "Welcome to Celine Esthétique. Please contact us at +41 78 949 40 39."
+                "Welcome to Celine Esthetique. Please contact us at +41 78 949 40 39."
             )
 
     return {

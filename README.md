@@ -39,6 +39,14 @@ A production-grade FastAPI backend powering the conversational AI assistant for 
 - **Firebase Prep:** Added optional Firestore configuration fields with graceful fallback to in-memory session store
 - **API Expansion:** Maintained backward compatibility with existing `/api/ai/chat` while adding streaming endpoint
 
+### Phase 5: Production Hardening & Expanded Dataset *(23 June 2026)*
+- **Expanded Dataset:** Grew `salon_knowledge.json` from 12 to 50 entries covering all 30+ salon services with realistic CHF pricing, durations, and aftercare instructions
+- **CORS Middleware:** Added `CORSMiddleware` to enable React.js frontend integration (Mehwish/Sibgha)
+- **SQLite Session Persistence:** Replaced pure in-memory store with SQLite `sessions.db` so conversation history survives server restarts
+- **Health Check Endpoint:** Added `GET /health` for deployment monitoring and uptime verification
+- **Code Cleanup:** Removed all emoji characters from log messages and production code for professional presentation
+- **Conversation Disambiguation:** Enhanced system prompt to instruct LLM to use conversation history for understanding vague follow-up queries
+
 ---
 
 ## 🛠️ Tech Stack
@@ -50,7 +58,8 @@ A production-grade FastAPI backend powering the conversational AI assistant for 
 | Vector Index | FAISS (Facebook AI Similarity Search) | Offline similarity search |
 | LLM | Groq Cloud SDK (`llama-3.3-70b-versatile`) | Live inference |
 | Config | Pydantic Settings + python-dotenv | Robust `.env` management |
-| Session Store | In-memory Python `dict` | Conversational history |
+| Session Store | SQLite (`sessions.db`) | Persistent conversational history |
+| Business Logic | Python module (`business_rules.py`) | Salon policies engine |
 
 ---
 
@@ -81,6 +90,7 @@ uvicorn app.main:app --reload
 
 | Method | Endpoint | Description |
 |:---|:---|:---|
+| `GET` | `/health` | Server health check and status |
 | `POST` | `/api/ai/chat` | AI concierge with session memory (JSON response) |
 | `POST` | `/api/ai/chat/stream` | AI concierge with real-time SSE streaming |
 
@@ -105,7 +115,7 @@ uvicorn app.main:app --reload
       "id": "srv_nail_care",
       "category": "Nail Care",
       "question": "What nail care treatments do you offer?",
-      "answer": "Our premium nail care services include Manicure, Pedicure, Gel application..."
+      "answer": "Our premium nail care services include Manicure (CHF 45, 45 min)..."
     }
   ]
 }
@@ -120,15 +130,19 @@ celine-ai/
 ├── .env                          # Secrets (not tracked)
 ├── requirements.txt
 ├── README.md
-├── salon_knowledge.json          # 12 curated salon entries
+├── sessions.db                   # SQLite session persistence (auto-created)
+│
+├── data/
+│   └── salon_knowledge.json      # 50 curated salon entries with CHF pricing
 │
 ├── app/
-│   ├── main.py                   # FastAPI app + session memory + streaming
+│   ├── main.py                   # FastAPI app + CORS + health + streaming
 │   ├── config.py                 # Pydantic settings (absolute .env path)
 │   ├── database.py               # FAISS singleton
 │   ├── business_rules.py         # Salon policies (discounts, cancellation, deposits)
+│   ├── session_store.py          # SQLite session persistence
 │   └── services/
-│       ├── rag_service.py        # Luxury RAG + intent classifier + business rules
+│       ├── rag_service.py        # Luxury RAG + intent + business rules
 │       └── streaming_service.py  # SSE streaming generator
 │
 └── tests/
@@ -152,8 +166,8 @@ celine-ai/
 ## 📝 Notes
 
 - **Do not commit `.env`** — it contains secrets.
-- In-memory session store resets on server restart. For production, migrate to Firebase Firestore.
-- FAISS index rebuilds from `salon_knowledge.json` on every boot.
+- SQLite session store persists across server restarts. For production, migrate to Firebase Firestore.
+- FAISS index rebuilds from `data/salon_knowledge.json` on every boot.
 - If Groq returns 400, verify model ID at [console.groq.com/docs/deprecations](https://console.groq.com/docs/deprecations).
 - Streaming endpoint (`/api/ai/chat/stream`) returns `text/event-stream` for real-time frontend display.
 
@@ -166,3 +180,5 @@ TechNexus Virtual University Internship
 **Client:** Celine Esthétique, Lausanne, Switzerland
 
 ---
+
+*"Every word should feel like silk."*
