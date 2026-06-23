@@ -180,5 +180,3 @@ TechNexus Virtual University Internship
 **Client:** Celine Esthétique, Lausanne, Switzerland
 
 ---
-
-*"Every word should feel like silk."*
