@@ -8,7 +8,7 @@ A production-grade FastAPI backend powering the conversational AI assistant for 
 
 ### Phase 1: Foundation & Local Vector Database *(17 June 2026)*
 - Created modular FastAPI project structure with virtual environment
-- Populated curated salon knowledge base (`salon_knowledge.json`) with 12 entries
+- Populated curated salon knowledge base with 12 entries
 - Implemented local text embedding pipeline using HuggingFace `all-MiniLM-L6-v2`
 - Built FAISS vector index for semantic similarity search
 
@@ -47,6 +47,13 @@ A production-grade FastAPI backend powering the conversational AI assistant for 
 - **Code Cleanup:** Removed all emoji characters from log messages and production code for professional presentation
 - **Conversation Disambiguation:** Enhanced system prompt to instruct LLM to use conversation history for understanding vague follow-up queries
 
+### Phase 6: Testing, Rate Limiting & Frontend Demo *(24 June 2026)*
+- **pytest Automated Test Suite:** Created `tests/test_chatbot.py` with 7 comprehensive tests (health, chat, intent classification, session memory, streaming, validation) — all passing
+- **Rate Limiting Middleware:** Added `app/main.py` middleware enforcing max 10 requests/minute per IP with 429 responses
+- **HTML Chat Demo:** Created `demo.html` for live browser-based interaction with the AI concierge
+- **French Language Validation:** Verified bilingual persona responds elegantly in French to French-language queries
+- **Test Infrastructure:** Added `tests/conftest.py` and `tests/__init__.py` for proper pytest path resolution
+
 ---
 
 ## 🛠️ Tech Stack
@@ -60,6 +67,7 @@ A production-grade FastAPI backend powering the conversational AI assistant for 
 | Config | Pydantic Settings + python-dotenv | Robust `.env` management |
 | Session Store | SQLite (`sessions.db`) | Persistent conversational history |
 | Business Logic | Python module (`business_rules.py`) | Salon policies engine |
+| Testing | pytest + httpx | Automated API testing |
 
 ---
 
@@ -83,6 +91,8 @@ uvicorn app.main:app --reload
 ```
 
 **Test:** Open [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs) → `POST /api/ai/chat` → Try it out
+
+**Demo:** Open `demo.html` in your browser for a live chat interface
 
 ---
 
@@ -130,13 +140,14 @@ celine-ai/
 ├── .env                          # Secrets (not tracked)
 ├── requirements.txt
 ├── README.md
-├── sessions.db                   # SQLite session persistence (auto-created)
+├── demo.html                     # Browser chat demo
+├── sessions.db                   # SQLite session persistence (auto-created, not tracked)
 │
 ├── data/
 │   └── salon_knowledge.json      # 50 curated salon entries with CHF pricing
 │
 ├── app/
-│   ├── main.py                   # FastAPI app + CORS + health + streaming
+│   ├── main.py                   # FastAPI app + CORS + health + streaming + rate limiting
 │   ├── config.py                 # Pydantic settings (absolute .env path)
 │   ├── database.py               # FAISS singleton
 │   ├── business_rules.py         # Salon policies (discounts, cancellation, deposits)
@@ -146,6 +157,9 @@ celine-ai/
 │       └── streaming_service.py  # SSE streaming generator
 │
 └── tests/
+    ├── __init__.py
+    ├── conftest.py               # pytest path configuration
+    ├── test_chatbot.py           # 7 automated API tests
     └── test_rag.py
 ```
 
@@ -163,20 +177,38 @@ celine-ai/
 
 ---
 
+## 🧪 Testing
+
+```bash
+# Run all automated tests
+pytest tests/test_chatbot.py -v
+```
+
+**Test coverage:**
+- Health check endpoint
+- Standard chat endpoint
+- Intent classification (nails, pricing, booking)
+- Session memory continuity
+- Streaming SSE endpoint
+- Message length validation
+- Empty message rejection
+
+---
+
 ## 📝 Notes
 
 - **Do not commit `.env`** — it contains secrets.
+- **Do not commit `sessions.db`** — local SQLite database (added to `.gitignore`).
 - SQLite session store persists across server restarts. For production, migrate to Firebase Firestore.
 - FAISS index rebuilds from `data/salon_knowledge.json` on every boot.
 - If Groq returns 400, verify model ID at [console.groq.com/docs/deprecations](https://console.groq.com/docs/deprecations).
 - Streaming endpoint (`/api/ai/chat/stream`) returns `text/event-stream` for real-time frontend display.
+- Rate limiting: 10 requests per minute per IP address.
 
 ---
 
 ## 👤 Author
 
-**Ameema Rashid** — AI Lead & AI Developer  
+**Ameema Rashid** — AI Lead & AI Backend Developer  
 TechNexus Virtual University Internship  
 **Client:** Celine Esthétique, Lausanne, Switzerland
-
----

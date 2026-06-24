@@ -2,8 +2,8 @@ import logging
 import uuid
 import time
 from typing import List, Dict, Optional
-from fastapi import FastAPI
-from fastapi.responses import StreamingResponse
+from fastapi import FastAPI, Request
+from fastapi.responses import StreamingResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from app.config import settings
@@ -22,6 +22,7 @@ SESSION_MEMORY: Dict[str, List[Dict[str, str]]] = {}
 
 app = FastAPI(title=settings.PROJECT_NAME, version=settings.VERSION)
 
+# CORS Middleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -29,6 +30,38 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Rate Limiting Middleware: max 10 requests per minute per IP
+RATE_LIMIT_STORE: Dict[str, List[float]] = {}
+
+@app.middleware("http")
+async def rate_limit_middleware(request: Request, call_next):
+    # Safely get client IP (request.client can be None in testing)
+    if request.client:
+        client_ip = request.client.host
+    else:
+        client_ip = request.headers.get("x-forwarded-for", "unknown")
+    
+    now = time.time()
+    
+    # Clean old entries (older than 60 seconds)
+    if client_ip in RATE_LIMIT_STORE:
+        RATE_LIMIT_STORE[client_ip] = [
+            t for t in RATE_LIMIT_STORE[client_ip] if now - t < 60
+        ]
+    else:
+        RATE_LIMIT_STORE[client_ip] = []
+    
+    # Check limit
+    if len(RATE_LIMIT_STORE[client_ip]) >= 10:
+        return JSONResponse(
+            status_code=429,
+            content={"detail": "Rate limit exceeded. Max 10 requests per minute."}
+        )
+    
+    RATE_LIMIT_STORE[client_ip].append(now)
+    response = await call_next(request)
+    return response
 
 @app.on_event("startup")
 async def startup_validation():
@@ -43,6 +76,7 @@ async def startup_validation():
         logger.info("Business Rules: ENABLED")
         logger.info("CORS: ENABLED")
         logger.info("SQLite Sessions: ENABLED")
+        logger.info("Rate Limiting: ENABLED")
 
 class ChatRequest(BaseModel):
     message: str = Field(..., min_length=1, max_length=500)

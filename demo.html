@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Celine Esthetique - AI Concierge Demo</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; max-width: 600px; margin: 40px auto; padding: 20px; background: #f9f9f9; }
+        h1 { color: #1a1a1a; text-align: center; }
+        .chat-box { border: 1px solid #ddd; border-radius: 12px; padding: 20px; background: white; min-height: 300px; }
+        .message { margin: 10px 0; padding: 10px 15px; border-radius: 18px; max-width: 80%; }
+        .user { background: #d4af37; color: #1a1a1a; margin-left: auto; text-align: right; }
+        .bot { background: #f9e4e0; color: #1a1a1a; }
+        .input-area { display: flex; gap: 10px; margin-top: 20px; }
+        input { flex: 1; padding: 12px; border: 1px solid #ddd; border-radius: 24px; font-size: 16px; }
+        button { padding: 12px 24px; background: #d4af37; border: none; border-radius: 24px; color: #1a1a1a; font-weight: bold; cursor: pointer; }
+        button:hover { background: #c5a028; }
+        .status { text-align: center; color: #666; font-size: 14px; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <h1>Celine Esthetique - AI Concierge</h1>
+    <div class="status" id="status">Checking API status...</div>
+    <div class="chat-box" id="chatBox">
+        <div class="message bot">Welcome to Celine Esthetique. How may I assist you today?</div>
+    </div>
+    <div class="input-area">
+        <input type="text" id="messageInput" placeholder="Ask about our services..." onkeypress="if(event.key==='Enter')sendMessage()">
+        <button onclick="sendMessage()">Send</button>
+    </div>
+
+    <script>
+        const API_URL = "http://127.0.0.1:8000/api/ai/chat";
+        let sessionId = null;
+
+        // Check API health on load
+        fetch("http://127.0.0.1:8000/health")
+            .then(r => r.json())
+            .then(data => {
+                document.getElementById("status").textContent = 
+                    `API: ${data.status} | Model: ${data.model} | Version: ${data.version}`;
+            })
+            .catch(() => {
+                document.getElementById("status").textContent = "API offline. Start the server first.";
+                document.getElementById("status").style.color = "red";
+            });
+
+        async function sendMessage() {
+            const input = document.getElementById("messageInput");
+            const message = input.value.trim();
+            if (!message) return;
+
+            // Show user message
+            addMessage(message, "user");
+            input.value = "";
+
+            // Call API
+            try {
+                const response = await fetch(API_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ message: message, session_id: sessionId })
+                });
+                const data = await response.json();
+                
+                // Store session_id for continuity
+                if (data.session_id) sessionId = data.session_id;
+                
+                // Show bot response
+                addMessage(data.reply, "bot");
+            } catch (err) {
+                addMessage("Error: Could not connect to AI service.", "bot");
+            }
+        }
+
+        function addMessage(text, sender) {
+            const box = document.getElementById("chatBox");
+            const div = document.createElement("div");
+            div.className = `message ${sender}`;
+            div.textContent = text;
+            box.appendChild(div);
+            box.scrollTop = box.scrollHeight;
+        }
+    </script>
+</body>
+</html>
