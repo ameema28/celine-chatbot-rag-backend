@@ -1,5 +1,4 @@
 from pathlib import Path
-from pydantic import Extra
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import Optional
 import os
@@ -22,13 +21,13 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=ENV_FILE_PATH,
         env_file_encoding="utf-8",
-        extra=Extra.ignore,
-        env_prefix="",
+        extra="ignore"
     )
 
 settings = Settings()
 
-# Phase 7: Force environment variable override if present
-# This ensures CI secrets always take precedence over .env file
-if os.getenv("GROQ_API_KEY"):
-    settings.GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+# Phase 7: CI/CD fix — environment variables take precedence over .env file
+# GitHub Actions injects secrets as env vars; this ensures they are not
+# overwritten by an empty or placeholder value in .env
+if os.environ.get("GROQ_API_KEY"):
+    settings.GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
