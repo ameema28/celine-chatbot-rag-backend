@@ -2,6 +2,7 @@
 
 A production-grade FastAPI backend powering the conversational AI assistant for **Celine Esthetique** (Lausanne, Switzerland). Uses a local FAISS vector database with HuggingFace embeddings and Groq Cloud LLM for premium, context-grounded salon responses.
 
+![CI](https://github.com/ameema28/celine-chatbot-rag-backend/actions/workflows/ci.yml/badge.svg)
 ---
 
 ## Progress Logs
