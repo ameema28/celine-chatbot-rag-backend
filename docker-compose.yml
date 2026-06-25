@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  celine-ai:
+    build: .
+    container_name: celine-ai-backend
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    volumes:
+      # Persist SQLite sessions across container restarts
+      - ./sessions.db:/app/sessions.db
+      # Optional: mount live data for updates without rebuild
+      - ./data:/app/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
