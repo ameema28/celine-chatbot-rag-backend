@@ -4,6 +4,20 @@ A production-grade FastAPI backend powering the conversational AI assistant for 
 
 ![CI](https://github.com/ameema28/celine-chatbot-rag-backend/actions/workflows/ci.yml/badge.svg)
 
+## Architecture
+
+```mermaid
+flowchart TD
+    U[User] --> MW[Rate Limit: 10/min]
+    MW --> CHAT[POST /api/ai/chat]
+    MW --> STREAM[POST /api/ai/chat/stream]
+    CHAT --> RAG[FAISS top_k=3]
+    STREAM --> RAG
+    RAG --> EMBED[all-MiniLM-L6-v2]
+    RAG --> GROQ[openai/gpt-oss-20b]
+    GROQ --> PERSIST[Firebase > SQLite > Memory]
+```
+
 ---
 ## Progress Logs
 
@@ -19,7 +33,7 @@ A production-grade FastAPI backend powering the conversational AI assistant for 
 - Implemented Groq Cloud SDK integration with specific exception handling
 - Added defensive `try-except` fallback returning structured JSON on failure
 - Fixed startup `.env` resolution to be CWD-independent using `pathlib`
-- Resolved Groq model decommission bug (`llama3-70b-8192` → `llama-3.3-70b-versatile`)
+- Resolved Groq model decommission bug (`llama3-70b-8192` → `openai/gpt-oss-20b`)
 
 ### Phase 3: Luxury Persona, Session Memory & High-Fidelity RAG *(19 June 2026)*
 - **Luxury Persona System Prompt:** Engineered elegant, five-star spa tone with bilingual support (English/French), strict context grounding, booking CTAs, and graceful reception handoff (+41 78 949 40 39)
@@ -77,7 +91,7 @@ A production-grade FastAPI backend powering the conversational AI assistant for 
 | Framework | FastAPI + Uvicorn | REST API server |
 | Embeddings | HuggingFace `sentence-transformers` (`all-MiniLM-L6-v2`) | Local semantic encoding |
 | Vector Index | FAISS (Facebook AI Similarity Search) | Offline similarity search |
-| LLM | Groq Cloud SDK (`llama-3.3-70b-versatile`) | Live inference |
+| LLM | Groq Cloud SDK (`openai/gpt-oss-20b`) | Live inference |
 | Config | Pydantic Settings + python-dotenv | Robust `.env` management |
 | Session Store | SQLite (`sessions.db`) + optional Firebase Firestore | Persistent conversational history |
 | Business Logic | Python module (`business_rules.py`) | Salon policies engine |
@@ -99,7 +113,7 @@ pip install -r requirements.txt
 
 # 3. Create .env in project root (see .env.example)
 # GROQ_API_KEY=gsk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-# GROQ_MODEL_NAME=llama-3.3-70b-versatile
+# GROQ_MODEL_NAME=openai/gpt-oss-20b
 # EMBEDDING_MODEL_NAME=all-MiniLM-L6-v2
 
 # 4. Run server
@@ -215,7 +229,7 @@ celine-ai/
 | Variable | Required | Default | Description |
 |:---|:---|:---|:---|
 | `GROQ_API_KEY` | Yes (for live LLM) | — | Groq Cloud API key |
-| `GROQ_MODEL_NAME` | No | `llama-3.3-70b-versatile` | Groq model ID |
+| `GROQ_MODEL_NAME` | No | `openai/gpt-oss-20b` | Groq model ID |
 | `EMBEDDING_MODEL_NAME` | No | `all-MiniLM-L6-v2` | HuggingFace embedding model |
 | `FIREBASE_PROJECT_ID` | No | — | Firebase project (optional) |
 | `FIREBASE_SERVICE_ACCOUNT_PATH` | No | — | Service account JSON path (optional) |
@@ -275,6 +289,8 @@ The GitHub Actions workflow (`.github/workflows/ci.yml`) automatically:
 
 ## Author
 
-**Ameema Rashid** — AI Lead & AI Backend Developer
-TechNexus Virtual University Internship
-**Client:** Celine Esthetique, Lausanne, Switzerland
+**Ameema Rashid** — AI Lead & AI Backend Developer  
+TechNexus Virtual University Internship  
+**Client:** Celine Esthetique, Lausanne, Switzerland  
+
+[![GitHub](https://img.shields.io/badge/GitHub-ameema28-black)](https://github.com/ameema28)
