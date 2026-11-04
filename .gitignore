@@ -7,3 +7,16 @@ __pycache__/
 faiss_index/
 sessions.db
 celine-esthetique/
+
+# Secrets
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+*service-account*.json
+*service_account*.json
+client_secret*.json
+application_default_credentials.json
+*credentials*.json
