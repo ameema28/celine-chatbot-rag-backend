@@ -72,13 +72,14 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# CORS Middleware
+# CORS: only the configured origins (CORS_ALLOW_ORIGINS). No cookies are used.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=settings.cors_origins,
+    allow_credentials=False,
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["Content-Type"],
+    expose_headers=["X-Session-Id"],
 )
 
 

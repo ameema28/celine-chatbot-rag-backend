@@ -30,11 +30,25 @@
     </div>
 
     <script>
-        const API_URL = "http://127.0.0.1:8000/api/ai/chat";
+        // API base URL: ?api=https://your-host overrides the local default.
+        const DEFAULT_API_BASE = "http://127.0.0.1:8000";
+        function resolveApiBase() {
+            const candidate = new URLSearchParams(window.location.search).get("api");
+            if (!candidate) return DEFAULT_API_BASE;
+            try {
+                const url = new URL(candidate);
+                if (url.protocol === "http:" || url.protocol === "https:") {
+                    return url.origin + url.pathname.replace(/\/+$/, "");
+                }
+            } catch (e) { /* invalid URL: fall back to the default */ }
+            return DEFAULT_API_BASE;
+        }
+        const API_BASE = resolveApiBase();
+        const API_URL = `${API_BASE}/api/ai/chat`;
         let sessionId = null;
 
         // Check API health on load
-        fetch("http://127.0.0.1:8000/health")
+        fetch(`${API_BASE}/health`)
             .then(r => r.json())
             .then(data => {
                 document.getElementById("status").textContent = 

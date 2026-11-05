@@ -17,6 +17,16 @@ uvicorn app.main:app --reload
 
 Open http://127.0.0.1:8000/docs for interactive Swagger UI.
 
+### Demo page
+
+CORS only allows the origins in `CORS_ALLOW_ORIGINS` (default: localhost ports 3000, 5173 and 5500). A page opened directly from disk (`file://`) sends `Origin: null` and is blocked, so serve the demo:
+
+```bash
+python -m http.server 5500
+# then open http://localhost:5500/demo.html
+# another API host: http://localhost:5500/demo.html?api=https://your-api-host
+```
+
 ---
 
 ## 2. Docker Deployment (Recommended for Production)
@@ -80,6 +90,9 @@ A workflow is provided in `.github/workflows/ci.yml`.
 | `GROQ_API_KEY` | Yes (for live LLM) | — | Groq Cloud API key |
 | `GROQ_MODEL_NAME` | No | `openai/gpt-oss-20b` | Groq model ID |
 | `EMBEDDING_MODEL_NAME` | No | `all-MiniLM-L6-v2` | HuggingFace embedding model |
+| `CORS_ALLOW_ORIGINS` | No | localhost:3000, :5173, :5500, 127.0.0.1:5500 | Comma-separated browser origins allowed to call the API |
+| `RAG_MAX_L2_DISTANCE` | No | `1.20` | FAISS relevance cutoff (squared L2; lower is stricter) |
+| `SESSIONS_DB_PATH` | No | `./sessions.db` | SQLite session file |
 | `PROJECT_NAME` | No | `Celine Esthetique Luxury AI Backend` | App display name |
 | `VERSION` | No | `1.0.0` | App version |
 

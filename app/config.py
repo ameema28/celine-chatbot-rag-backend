@@ -18,6 +18,15 @@ class Settings(BaseSettings):
     # Measured: on-topic queries 0.54-0.95, off-topic 1.62-1.87.
     RAG_MAX_L2_DISTANCE: float = 1.20
 
+    # Comma-separated list of browser origins allowed to call the API.
+    CORS_ALLOW_ORIGINS: str = (
+        "http://localhost:3000,http://localhost:5173,http://localhost:5500,http://127.0.0.1:5500"
+    )
+
+    @property
+    def cors_origins(self) -> list[str]:
+        return [o.strip() for o in self.CORS_ALLOW_ORIGINS.split(",") if o.strip()]
+
     model_config = SettingsConfigDict(
         env_file=ENV_FILE_PATH,
         env_file_encoding="utf-8",
