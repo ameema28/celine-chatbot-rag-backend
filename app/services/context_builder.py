@@ -16,7 +16,9 @@ from app.business_rules import (
     money,
     price_items_from_entry,
 )
+from app.config import settings
 from app.database import vector_db
+from app.language import LANGUAGE_NAMES, detect_language, to_english_query
 
 PHONE = SALON_POLICIES["contact"]["phone"]
 
@@ -34,6 +36,7 @@ class Turn:
     system_prompt: str
     messages: list[dict]
     computed_prices: list[Decimal] = field(default_factory=list)
+    lang: str = "en"
 
 
 def classify_intent(user_query: str) -> str:
@@ -129,7 +132,30 @@ def _pricing_block(chunks: list[dict], user_query: str) -> tuple[str, list[Decim
     return block, computed
 
 
-def _system_prompt(chunks: list[dict], business_context: str) -> str:
+def _language_rule(lang: str) -> str:
+    rule = f"Reply in {LANGUAGE_NAMES[lang]}, the language of the customer's message. "
+    if lang != "en":
+        rule += (
+            "The salon information below is in English; translate it faithfully and keep "
+            "CHF amounts and the phone number unchanged. "
+        )
+    return rule
+
+
+def _search(user_query: str, english_query: str) -> list[dict]:
+    """Top-3 within the cutoff; French questions also search their English terms."""
+    if not english_query:
+        return vector_db.search_context(user_query, top_k=3)
+    best: dict[str, tuple[dict, float]] = {}
+    for query in (user_query, english_query):
+        for doc, dist in vector_db.search_with_scores(query, top_k=3):
+            if doc["id"] not in best or dist < best[doc["id"]][1]:
+                best[doc["id"]] = (doc, dist)
+    ranked = sorted(best.values(), key=lambda pair: pair[1])
+    return [doc for doc, dist in ranked if dist <= settings.RAG_MAX_L2_DISTANCE][:3]
+
+
+def _system_prompt(chunks: list[dict], business_context: str, lang: str = "en") -> str:
     context_blocks = [f"[{i}] {c['category']}: {c['answer']}" for i, c in enumerate(chunks, 1)]
     context_text = "\n".join(context_blocks) if context_blocks else "No specific salon documents matched."
     return (
@@ -142,6 +168,7 @@ def _system_prompt(chunks: list[dict], business_context: str) -> str:
         f"If the context does not contain the answer, say so politely and offer the phone number {PHONE}. "
         "Only quote CHF prices that appear in the verified context or the computed prices; "
         "never restate other amounts as prices. "
+        f"{_language_rule(lang)}"
         "Always offer to help schedule an appointment at the end.\n\n"
         f"VERIFIED CONTEXT:\n{context_text}"
         f"{business_context}"
@@ -151,14 +178,18 @@ def _system_prompt(chunks: list[dict], business_context: str) -> str:
 def build_turn(user_query: str, history: list[dict] | None = None) -> Turn:
     """Retrieve context and build the prompt/messages for one user message."""
     history = history or []
-    chunks = vector_db.search_context(user_query, top_k=3)
-    intent = classify_intent(user_query)
-    business = _business_context(user_query)
+    lang = detect_language(user_query)
+    english_query = to_english_query(user_query) if lang == "fr" else ""
+    chunks = _search(user_query, english_query)
+    # Keyword rules are English; French questions are matched via their glossary terms.
+    rule_text = f"{user_query} {english_query}".strip()
+    intent = classify_intent(rule_text)
+    business = _business_context(rule_text)
     computed: list[Decimal] = []
     if intent == "intent_pricing":
         pricing, computed = _pricing_block(chunks, user_query)
         business += pricing
-    system_prompt = _system_prompt(chunks, business)
+    system_prompt = _system_prompt(chunks, business, lang)
     messages = [{"role": "system", "content": system_prompt}]
     messages += [{"role": t["role"], "content": t["content"]} for t in history]
     messages.append({"role": "user", "content": user_query})
@@ -169,11 +200,24 @@ def build_turn(user_query: str, history: list[dict] | None = None) -> Turn:
         system_prompt=system_prompt,
         messages=messages,
         computed_prices=computed,
+        lang=lang,
     )
 
 
 def fallback_reply(turn: Turn) -> str:
-    """Offline reply built only from retrieved salon data (no LLM)."""
+    """Offline reply built only from retrieved salon data (no LLM).
+
+    The data is English-only, so the French version says so instead of
+    pretending to translate.
+    """
+    if turn.lang == "fr":
+        if turn.chunks:
+            return (
+                "Bienvenue chez Celine Esthetique. Voici l'information disponible (en anglais) : "
+                f"{turn.chunks[0]['answer']} Souhaitez-vous prendre rendez-vous ? "
+                f"Appelez-nous au {PHONE}."
+            )
+        return f"Bienvenue chez Celine Esthetique. Veuillez nous contacter au {PHONE}."
     if turn.chunks:
         return (
             f"Welcome to Celine Esthetique. {turn.chunks[0]['answer']} "

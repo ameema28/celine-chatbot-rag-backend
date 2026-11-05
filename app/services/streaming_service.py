@@ -45,6 +45,6 @@ async def generate_streaming_rag_response(
             logger.error(f"[{session_id}] Streaming error: {type(e).__name__}: {e}")
             reply = fallback_reply(turn)
 
-    reply = guard_reply(reply, turn.computed_prices, session_id)
+    reply = guard_reply(reply, turn.computed_prices, session_id, turn.lang)
     for piece in word_chunks(reply):
         yield piece

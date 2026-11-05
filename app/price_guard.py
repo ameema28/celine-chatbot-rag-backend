@@ -24,6 +24,10 @@ SAFE_MESSAGES = {
         "I'd rather not quote a price I can't confirm. "
         f"Please call us at {PHONE} and we'll give you the exact figure."
     ),
+    "fr": (
+        "Je préfère ne pas vous indiquer un prix que je ne peux pas confirmer. "
+        f"Appelez-nous au {PHONE} et nous vous donnerons le montant exact."
+    ),
 }
 
 
