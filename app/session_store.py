@@ -1,7 +1,6 @@
-import sqlite3
 import json
 import os
-from typing import List, Dict, Optional
+import sqlite3
 
 DB_PATH = os.environ.get("SESSIONS_DB_PATH") or os.path.join(
     os.path.dirname(__file__), "..", "sessions.db"
@@ -23,7 +22,7 @@ def init_db():
     conn.close()
 
 
-def save_session(session_id: str, history: List[Dict[str, str]]):
+def save_session(session_id: str, history: list[dict[str, str]]):
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     cursor.execute("""
@@ -37,7 +36,7 @@ def save_session(session_id: str, history: List[Dict[str, str]]):
     conn.close()
 
 
-def load_session(session_id: str) -> Optional[List[Dict[str, str]]]:
+def load_session(session_id: str) -> list[dict[str, str]] | None:
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     cursor.execute("SELECT history FROM sessions WHERE session_id = ?", (session_id,))

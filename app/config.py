@@ -1,13 +1,13 @@
-from pathlib import Path
-from pydantic_settings import BaseSettings, SettingsConfigDict
-from typing import Optional
 import os
+from pathlib import Path
+
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 ENV_FILE_PATH = BASE_DIR / ".env"
 
 class Settings(BaseSettings):
-    GROQ_API_KEY: Optional[str] = None
+    GROQ_API_KEY: str | None = None
     GROQ_MODEL_NAME: str = "openai/gpt-oss-20b"
 
     PROJECT_NAME: str = "Celine Esthetique Luxury AI Backend"

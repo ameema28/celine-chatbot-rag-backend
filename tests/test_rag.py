@@ -1,7 +1,7 @@
 # tests/test_rag.py
 """Phase 7 — RAG Service Unit Tests (aligned with production architecture)."""
-import sys
 import os
+import sys
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
@@ -52,7 +52,7 @@ def test_rag_service_uses_conversation_history():
     )
     assert "reply" in output
     assert output["intent"] == "intent_pricing"
-    print(f"PASS: history-aware pricing intent detected")
+    print("PASS: history-aware pricing intent detected")
 
 
 if __name__ == "__main__":

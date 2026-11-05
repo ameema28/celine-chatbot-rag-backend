@@ -71,15 +71,19 @@ Sessions are stored in **SQLite** (`sessions.db`), with an in-memory copy as a f
 A workflow is provided in `.github/workflows/ci.yml`.
 
 **What it does:**
-- Triggers on every push / PR to `main` or `master`
-- Installs Python 3.11 and caches pip dependencies
-- Runs the full pytest suite (`tests/test_chatbot.py` + `tests/test_rag.py`)
-- Runs optional linting with `ruff`
+- Triggers on push and pull request to `main` or `master`
+- Installs Python 3.11, `requirements.txt` and `requirements-dev.txt` (pip cached)
+- Runs `ruff check app/ tests/` (blocking)
+- Runs the full pytest suite with a coverage gate (`--cov-fail-under=94`)
+- Needs **no API key**: the tests mock Groq, so CI makes no paid LLM calls
 
-**Setup:**
-1. Push the `.github/workflows/ci.yml` file to your repository.
-2. Go to **GitHub Repo > Actions** to view pipeline runs.
-3. (Optional) Add repository secrets if you need encrypted env vars during CI.
+**Run the same checks locally:**
+
+```bash
+pip install -r requirements.txt -r requirements-dev.txt
+ruff check app/ tests/
+pytest tests/ -p no:cacheprovider --cov=app --cov-report=term-missing --cov-fail-under=94
+```
 
 ---
 
@@ -108,7 +112,7 @@ A workflow is provided in `.github/workflows/ci.yml`.
 | 3 | Health check `GET /health` returns 200 | [ ] |
 | 4 | `POST /api/ai/chat` returns valid JSON | [ ] |
 | 5 | `POST /api/ai/chat/stream` returns SSE stream | [ ] |
-| 6 | pytest suite passes (`pytest tests/ -v`) | [ ] |
+| 6 | pytest suite passes with no API key (`pytest tests/ -v`) | [ ] |
 | 7 | Rate limiting tested (11th request returns 429) | [ ] |
 | 8 | CORS enabled for frontend origin | [ ] |
 | 9 | GitHub Actions pipeline is green | [ ] |

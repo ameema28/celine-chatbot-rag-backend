@@ -1,17 +1,18 @@
 import logging
-import uuid
 import time
+import uuid
 from contextlib import asynccontextmanager
-from typing import List, Dict, Optional
+
 from fastapi import FastAPI, Request
-from fastapi.responses import StreamingResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import BaseModel, Field
+
 from app import llm
 from app.config import settings
 from app.services.rag_service import generate_rag_response
 from app.services.streaming_service import generate_streaming_rag_response
-from app.session_store import save_session, load_session
+from app.session_store import load_session, save_session
 
 logging.basicConfig(
     level=logging.INFO,
@@ -20,10 +21,10 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-SESSION_MEMORY: Dict[str, List[Dict[str, str]]] = {}
+SESSION_MEMORY: dict[str, list[dict[str, str]]] = {}
 
 # Rate Limiting Middleware: max 10 requests per minute per IP
-RATE_LIMIT_STORE: Dict[str, List[float]] = {}
+RATE_LIMIT_STORE: dict[str, list[float]] = {}
 
 
 def _cleanup_rate_limit_store():
@@ -130,7 +131,7 @@ app.add_middleware(
 
 class ChatRequest(BaseModel):
     message: str = Field(..., min_length=1, max_length=500, description="User message to the AI concierge.")
-    session_id: Optional[str] = Field(None, description="Existing session ID for memory continuity. Omit to start a new session.")
+    session_id: str | None = Field(None, description="Existing session ID for memory continuity. Omit to start a new session.")
 
 
 class ChatResponse(BaseModel):
@@ -139,26 +140,26 @@ class ChatResponse(BaseModel):
     session_id: str = Field(..., description="Session identifier for continuity.")
     fallback_used: bool = Field(..., description="True if the offline fallback was used instead of live LLM.")
     response_time_ms: int = Field(..., description="LLM inference time in milliseconds (0 if fallback).")
-    retrieved_context: List[dict] = Field(..., description="FAISS-retrieved knowledge base chunks.")
+    retrieved_context: list[dict] = Field(..., description="FAISS-retrieved knowledge base chunks.")
 
 
-def _persist_session(session_id: str, history: List[Dict[str, str]]):
+def _persist_session(session_id: str, history: list[dict[str, str]]):
     """Save to SQLite; the in-memory copy is the fallback if SQLite fails."""
     SESSION_MEMORY[session_id] = history
 
     try:
         save_session(session_id, history)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 - a storage failure must never break a reply
         logger.error(f"SQLite save failed [{session_id}]: {e}")
 
 
-def _load_session(session_id: str) -> Optional[List[Dict[str, str]]]:
+def _load_session(session_id: str) -> list[dict[str, str]] | None:
     """Load from SQLite, else from the in-memory copy."""
     try:
         hist = load_session(session_id)
         if hist is not None:
             return hist
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 - fall back to the in-memory copy on any storage error
         logger.error(f"SQLite load failed [{session_id}]: {e}")
 
     return SESSION_MEMORY.get(session_id)
@@ -245,7 +246,7 @@ async def ai_chat_stream_endpoint(payload: ChatRequest):
         elapsed_ms = int((time.time() - start_time) * 1000)
         logger.info(f"[STREAM] [{session_id}] Completed in {elapsed_ms}ms")
 
-        yield f"data: [DONE]\n\n"
+        yield "data: [DONE]\n\n"
 
     return StreamingResponse(
         event_generator(),

@@ -1,9 +1,11 @@
-import os
 import json
-import numpy as np
+import os
+
 import faiss
 from sentence_transformers import SentenceTransformer
+
 from app.config import settings
+
 
 class VectorDatabase:
     def __init__(self):
