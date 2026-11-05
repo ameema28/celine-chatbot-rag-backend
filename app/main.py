@@ -12,20 +12,6 @@ from app.services.rag_service import generate_rag_response
 from app.services.streaming_service import generate_streaming_rag_response
 from app.session_store import save_session, load_session
 
-# Phase 7: Firebase Firestore bridge (graceful fallback)
-save_session_firestore = None
-load_session_firestore = None
-FIRESTORE_AVAILABLE = False
-
-try:
-    from app.firebase_session_store import save_session_firestore as _save_fs
-    from app.firebase_session_store import load_session_firestore as _load_fs
-    save_session_firestore = _save_fs
-    load_session_firestore = _load_fs
-    FIRESTORE_AVAILABLE = True
-except Exception:
-    pass
-
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s | %(levelname)-8s | %(name)-25s | %(message)s",
@@ -63,7 +49,6 @@ def _startup_tasks():
     logger.info("Business Rules: ENABLED")
     logger.info("CORS: ENABLED")
     logger.info("SQLite Sessions: ENABLED")
-    logger.info(f"Firebase Firestore: {'ENABLED' if FIRESTORE_AVAILABLE else 'DISABLED (fallback to SQLite)'}")
     logger.info("Rate Limiting: ENABLED")
     logger.info("Memory Cleanup: ENABLED")
 
@@ -144,13 +129,8 @@ class ChatResponse(BaseModel):
 
 
 def _persist_session(session_id: str, history: List[Dict[str, str]]):
-    """Save to Firebase if available, else SQLite, else in-memory."""
+    """Save to SQLite; the in-memory copy is the fallback if SQLite fails."""
     SESSION_MEMORY[session_id] = history
-
-    if FIRESTORE_AVAILABLE and save_session_firestore is not None:
-        ok = save_session_firestore(session_id, history)
-        if ok:
-            return
 
     try:
         save_session(session_id, history)
@@ -159,12 +139,7 @@ def _persist_session(session_id: str, history: List[Dict[str, str]]):
 
 
 def _load_session(session_id: str) -> Optional[List[Dict[str, str]]]:
-    """Load from Firebase if available, else SQLite, else in-memory."""
-    if FIRESTORE_AVAILABLE and load_session_firestore is not None:
-        hist = load_session_firestore(session_id)
-        if hist is not None:
-            return hist
-
+    """Load from SQLite, else from the in-memory copy."""
     try:
         hist = load_session(session_id)
         if hist is not None:
@@ -273,6 +248,6 @@ def health_check():
         "version": settings.VERSION,
         "model": settings.GROQ_MODEL_NAME,
         "llm_ready": bool(settings.GROQ_API_KEY),
-        "firebase_ready": FIRESTORE_AVAILABLE,
+        "session_store": "sqlite",
         "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
     }

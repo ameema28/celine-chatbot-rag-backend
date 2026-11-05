@@ -13,6 +13,8 @@ def test_health_check():
     assert data["status"] == "healthy"
     assert data["llm_ready"] in (True, False)
     assert "version" in data
+    assert data["session_store"] == "sqlite"
+    assert "firebase_ready" not in data
 
 def test_chat_endpoint_basic():
     """Verify standard chat endpoint returns valid JSON structure."""

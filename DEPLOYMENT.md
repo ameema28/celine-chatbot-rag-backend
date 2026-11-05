@@ -50,25 +50,9 @@ docker-compose down
 
 ---
 
-## 3. Firebase Firestore Integration (Optional)
+## 3. Session Storage
 
-By default, the backend uses **SQLite** (`sessions.db`) for session persistence.
-
-To upgrade to **Firebase Firestore** for production:
-
-1. Go to [Firebase Console](https://console.firebase.google.com/) and create a project named `celine-esthetique`.
-2. Generate a **Service Account** private key (Project Settings > Service Accounts > Generate New Private Key).
-3. Save the JSON file as `firebase-service-account.json` in your project root.
-4. Update `.env`:
-
-```env
-FIREBASE_PROJECT_ID=celine-esthetique
-FIREBASE_SERVICE_ACCOUNT_PATH=./firebase-service-account.json
-```
-
-5. Restart the server. It will automatically detect Firebase credentials and prefer Firestore over SQLite.
-
-> **Graceful Fallback:** If Firebase credentials are missing or invalid, the system silently falls back to SQLite with zero downtime.
+Sessions are stored in **SQLite** (`sessions.db`), with an in-memory copy as a fallback if SQLite fails. There is no other session store.
 
 ---
 
@@ -94,10 +78,8 @@ A workflow is provided in `.github/workflows/ci.yml`.
 | Variable | Required | Default | Purpose |
 |:---|:---|:---|:---|
 | `GROQ_API_KEY` | Yes (for live LLM) | — | Groq Cloud API key |
-| `GROQ_MODEL_NAME` | No | `llama-3.3-70b-versatile` | Groq model ID |
+| `GROQ_MODEL_NAME` | No | `openai/gpt-oss-20b` | Groq model ID |
 | `EMBEDDING_MODEL_NAME` | No | `all-MiniLM-L6-v2` | HuggingFace embedding model |
-| `FIREBASE_PROJECT_ID` | No | — | Firebase project identifier |
-| `FIREBASE_SERVICE_ACCOUNT_PATH` | No | — | Path to service account JSON |
 | `PROJECT_NAME` | No | `Celine Esthetique Luxury AI Backend` | App display name |
 | `VERSION` | No | `1.0.0` | App version |
 
@@ -115,8 +97,7 @@ A workflow is provided in `.github/workflows/ci.yml`.
 | 6 | pytest suite passes (`pytest tests/ -v`) | [ ] |
 | 7 | Rate limiting tested (11th request returns 429) | [ ] |
 | 8 | CORS enabled for frontend origin | [ ] |
-| 9 | Firebase configured (optional) | [ ] |
-| 10 | GitHub Actions pipeline is green | [ ] |
+| 9 | GitHub Actions pipeline is green | [ ] |
 
 ---
 
@@ -147,7 +128,6 @@ server {
 | FAISS index not found | Ensure `data/salon_knowledge.json` exists and is valid JSON |
 | Groq 400 error | Check model ID at console.groq.com/docs/deprecations |
 | Slow first response | The embedding model downloads on first boot; pre-bake it in Dockerfile |
-| Firebase auth failed | Verify `firebase-service-account.json` path and project ID |
 
 ---
 
