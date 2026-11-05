@@ -1,70 +1,47 @@
 import logging
-from typing import AsyncGenerator, List, Dict
+from collections.abc import AsyncGenerator
 
 from app import llm
-from app.database import vector_db
 from app.config import settings
-from app.business_rules import SALON_POLICIES, get_cancellation_policy
+from app.services.context_builder import PHONE, build_turn, fallback_reply, word_chunks
 
 logger = logging.getLogger(__name__)
-GROQ_MODEL = getattr(settings, 'GROQ_MODEL_NAME', 'llama-3.3-70b-versatile')
+GROQ_MODEL = settings.GROQ_MODEL_NAME
 
 
 async def generate_streaming_rag_response(
     user_query: str,
     session_id: str = "unknown",
-    history: List[Dict[str, str]] = None
+    history: list[dict[str, str]] | None = None,
 ) -> AsyncGenerator[str, None]:
-    history = history or []
+    """Stream a reply using the same turn, key check and fallback as /chat."""
+    turn = build_turn(user_query, history)
 
-    retrieved_chunks = vector_db.search_context(user_query, top_k=3)
+    if not llm.groq_key_usable():
+        logger.warning(f"[{session_id}] No usable GROQ_API_KEY: streaming offline fallback")
+        for piece in word_chunks(fallback_reply(turn)):
+            yield piece
+        return
 
-    context_blocks = []
-    for i, chunk in enumerate(retrieved_chunks, 1):
-        context_blocks.append(
-            f"[{i}] {chunk['category']}: {chunk['answer']}"
-        )
-    context_text = "\n".join(context_blocks) if context_blocks else "No specific salon documents matched."
-
-    business_context = ""
-    q = user_query.lower()
-    if any(w in q for w in ["price", "cost", "how much", "chf", "discount", "first-time", "vip", "deposit"]):
-        business_context = (
-            f" VIP: {SALON_POLICIES['discounts']['vip']['percentage']}% off. "
-            f"First-time: {SALON_POLICIES['discounts']['first_time']['percentage']}% off. "
-            f"Luxury deposit: {int(SALON_POLICIES['deposits']['luxury_rate']*100)}%."
-        )
-    elif any(w in q for w in ["book", "appointment", "schedule", "reserve", "cancel"]):
-        business_context = f" Cancellation: {get_cancellation_policy()}"
-
-    system_prompt = (
-        "You are Celine, AI concierge for Celine Esthetique luxury salon in Lausanne. "
-        "14+ years experience. Elegant, warm, professional tone. "
-        "Use 'we', 'our salon'. Offer booking assistance. "
-        "Be concise. Answer in 2-3 sentences unless the user asks for detail. "
-        f"Context: {context_text}{business_context}"
-    )
-
-    messages = [{"role": "system", "content": system_prompt}]
-    for turn in history:
-        messages.append({"role": turn["role"], "content": turn["content"]})
-    messages.append({"role": "user", "content": user_query})
-
+    sent_any = False
     try:
         client = llm.get_groq_client()
         stream = client.chat.completions.create(
             model=GROQ_MODEL,
-            messages=messages,
+            messages=turn.messages,
             temperature=0.3,
             max_tokens=200,
-            stream=True
+            stream=True,
         )
-
         for chunk in stream:
-            if chunk.choices[0].delta.content:
-                yield chunk.choices[0].delta.content
-
-    except Exception as e:
-        logger.error(f"[{session_id}] Streaming error: {e}")
-        yield "I apologize, but I am unable to process your request at this moment. "
-        yield "Please contact our reception at +41 78 949 40 39."
+            content = chunk.choices[0].delta.content
+            if content:
+                sent_any = True
+                yield content
+    except Exception as e:  # noqa: BLE001 - any LLM failure must degrade to the fallback
+        logger.error(f"[{session_id}] Streaming error: {type(e).__name__}: {e}")
+        if not sent_any:
+            for piece in word_chunks(fallback_reply(turn)):
+                yield piece
+        else:
+            yield f" For anything else, please call us at {PHONE}."

@@ -1,86 +1,22 @@
 import logging
 import time
-from typing import List, Dict
 
-from groq import APIError, APIConnectionError, AuthenticationError
+from groq import APIConnectionError, APIError, AuthenticationError
+
 from app import llm
-from app.database import vector_db
 from app.config import settings
-from app.business_rules import SALON_POLICIES, get_cancellation_policy
+from app.services.context_builder import build_turn, fallback_reply
 
 logger = logging.getLogger(__name__)
-GROQ_MODEL = getattr(settings, 'GROQ_MODEL_NAME', 'llama-3.3-70b-versatile')
+GROQ_MODEL = settings.GROQ_MODEL_NAME
 
 
 def generate_rag_response(
     user_query: str,
     session_id: str = "unknown",
-    history: List[Dict[str, str]] = None
+    history: list[dict[str, str]] | None = None,
 ) -> dict:
-    history = history or []
-
-    retrieved_chunks = vector_db.search_context(user_query, top_k=3)
-
-    context_blocks = []
-    for i, chunk in enumerate(retrieved_chunks, 1):
-        context_blocks.append(
-            f"[{i}] {chunk['category']}: {chunk['answer']}"
-        )
-    context_text = "\n".join(context_blocks) if context_blocks else "No specific salon documents matched."
-
-    # Intent classification: pricing keywords checked first
-    intent_flag = "general_salon_info"
-    q = user_query.lower()
-    if any(w in q for w in ["price", "cost", "how much", "chf", "discount", "first-time", "vip", "deposit"]):
-        intent_flag = "intent_pricing"
-    elif any(w in q for w in ["book", "appointment", "schedule", "reserve", "cancel"]):
-        intent_flag = "intent_booking"
-    elif any(w in q for w in ["nail", "manicure", "pedicure", "gel", "varnish"]):
-        intent_flag = "service_nails"
-    elif any(w in q for w in ["eye", "lash", "brow", "tint"]):
-        intent_flag = "service_eyes"
-    elif any(w in q for w in ["hair removal", "wax", "bikini", "leg", "arm", "upper lip", "chin", "cheek"]):
-        intent_flag = "service_waxing"
-    elif any(w in q for w in ["head spa", "scalp", "hair wellness", "japanese"]):
-        intent_flag = "service_head_spa"
-    elif any(w in q for w in ["product", "shop", "cream", "skincare", "buy"]):
-        intent_flag = "intent_shop"
-
-    # Business rules injection based on keywords
-    business_context = ""
-    if any(w in q for w in ["price", "cost", "how much", "chf", "discount", "first-time", "vip", "deposit"]):
-        business_context = (
-            f"\n\nPRICING RULES:\n"
-            f"- VIP: {SALON_POLICIES['discounts']['vip']['percentage']}% off\n"
-            f"- First-time: {SALON_POLICIES['discounts']['first_time']['percentage']}% off\n"
-            f"- Luxury deposit: {int(SALON_POLICIES['deposits']['luxury_rate']*100)}%\n"
-            f"- {get_cancellation_policy()}\n"
-        )
-    elif any(w in q for w in ["book", "appointment", "schedule", "reserve", "cancel"]):
-        business_context = (
-            f"\n\nBOOKING RULES:\n"
-            f"- {get_cancellation_policy()}\n"
-            f"- Phone: {SALON_POLICIES['contact']['phone']}\n"
-        )
-
-    # FIXED: Explicitly instruct LLM to use conversation history for disambiguation
-    system_prompt = (
-        "You are Celine, AI concierge for Celine Esthetique luxury salon in Lausanne, Switzerland. "
-        "14+ years experience. Tone: elegant, warm, professional. "
-        "Use 'we' and 'our salon'. "
-        "Be concise. Answer in 2-3 sentences unless the user asks for detail. "
-        "Use the conversation history to understand what the user is referring to. "
-        "Base factual details on the verified salon context below. "
-        "If the context does not contain the answer, say so politely and offer the phone number +41 78 949 40 39. "
-        "Always offer to help schedule an appointment at the end.\n\n"
-        f"VERIFIED CONTEXT:\n{context_text}"
-        f"{business_context}"
-    )
-
-    messages = [{"role": "system", "content": system_prompt}]
-    for turn in history:
-        messages.append({"role": turn["role"], "content": turn["content"]})
-    messages.append({"role": "user", "content": user_query})
+    turn = build_turn(user_query, history)
 
     ai_reply = ""
     fallback_used = False
@@ -95,22 +31,21 @@ def generate_rag_response(
     else:
         try:
             start_time = time.time()
-
             logger.info(f"[{session_id}] Calling Groq: {GROQ_MODEL}")
             client = llm.get_groq_client()
             completion = client.chat.completions.create(
                 model=GROQ_MODEL,
-                messages=messages,
+                messages=turn.messages,
                 temperature=0.3,
-                max_tokens=200
+                max_tokens=200,
             )
             ai_reply = completion.choices[0].message.content
             response_time_ms = int((time.time() - start_time) * 1000)
             logger.info(f"[{session_id}] Groq success in {response_time_ms}ms")
-            
+
             if response_time_ms > 4000:
                 logger.warning(f"[{session_id}] SLOW: {response_time_ms}ms > 4s target")
-                
+
         except AuthenticationError as e:
             logger.error(f"[{session_id}] AUTH ERROR: {e}")
             fallback_used = True
@@ -118,29 +53,20 @@ def generate_rag_response(
             logger.error(f"[{session_id}] CONNECTION ERROR: {e}")
             fallback_used = True
         except APIError as e:
-            status = getattr(e, 'status_code', 'unknown')
+            status = getattr(e, "status_code", "unknown")
             logger.error(f"[{session_id}] API ERROR ({status}): {e}")
             fallback_used = True
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 - any LLM failure must degrade to the fallback
             logger.error(f"[{session_id}] UNEXPECTED: {type(e).__name__}: {e}")
             fallback_used = True
 
     if fallback_used:
-        if retrieved_chunks:
-            primary = retrieved_chunks[0]['answer']
-            ai_reply = (
-                f"Welcome to Celine Esthetique. {primary} "
-                "Would you like help scheduling an appointment?"
-            )
-        else:
-            ai_reply = (
-                "Welcome to Celine Esthetique. Please contact us at +41 78 949 40 39."
-            )
+        ai_reply = fallback_reply(turn)
 
     return {
         "reply": ai_reply,
-        "intent": intent_flag,
-        "retrieved_context": retrieved_chunks,
+        "intent": turn.intent,
+        "retrieved_context": turn.chunks,
         "fallback_used": fallback_used,
-        "response_time_ms": response_time_ms
+        "response_time_ms": response_time_ms,
     }

@@ -192,6 +192,11 @@ def ai_chat_endpoint(payload: ChatRequest):
     )
 
 
+def _sse_event(text: str) -> str:
+    """One SSE event; multi-line text becomes several data: lines (SSE spec)."""
+    return "".join(f"data: {line}\n" for line in text.split("\n")) + "\n"
+
+
 @app.post("/api/ai/chat/stream", tags=["AI Concierge"], summary="Streaming chat with SSE")
 async def ai_chat_stream_endpoint(payload: ChatRequest):
     """
@@ -214,7 +219,7 @@ async def ai_chat_stream_endpoint(payload: ChatRequest):
             payload.message, session_id, history
         ):
             full_response.append(token)
-            yield f"data: {token}\n\n"
+            yield _sse_event(token)
 
         complete_reply = "".join(full_response)
         history.append({"role": "user", "content": payload.message})
