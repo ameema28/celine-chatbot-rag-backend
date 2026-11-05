@@ -93,6 +93,7 @@ A workflow is provided in `.github/workflows/ci.yml`.
 | `CORS_ALLOW_ORIGINS` | No | localhost:3000, :5173, :5500, 127.0.0.1:5500 | Comma-separated browser origins allowed to call the API |
 | `RAG_MAX_L2_DISTANCE` | No | `1.20` | FAISS relevance cutoff (squared L2; lower is stricter) |
 | `SESSIONS_DB_PATH` | No | `./sessions.db` | SQLite session file |
+| `TRUST_PROXY` | No | `false` | Use the first `X-Forwarded-For` entry as client IP for rate limiting (only behind a trusted proxy) |
 | `PROJECT_NAME` | No | `Celine Esthetique Luxury AI Backend` | App display name |
 | `VERSION` | No | `1.0.0` | App version |
 

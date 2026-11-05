@@ -72,24 +72,25 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# CORS: only the configured origins (CORS_ALLOW_ORIGINS). No cookies are used.
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=settings.cors_origins,
-    allow_credentials=False,
-    allow_methods=["GET", "POST", "OPTIONS"],
-    allow_headers=["Content-Type"],
-    expose_headers=["X-Session-Id"],
-)
+# Preflights and health/docs routes are never rate limited.
+RATE_LIMIT_EXEMPT_PATHS = {"/health", "/docs", "/redoc", "/openapi.json"}
+
+
+def _client_ip(request: Request) -> str:
+    """X-Forwarded-For (first entry) only when TRUST_PROXY=true, else the socket peer."""
+    if settings.TRUST_PROXY:
+        first = request.headers.get("x-forwarded-for", "").split(",")[0].strip()
+        if first:
+            return first
+    return request.client.host if request.client else "unknown"
 
 
 @app.middleware("http")
 async def rate_limit_middleware(request: Request, call_next):
-    if request.client:
-        client_ip = request.client.host
-    else:
-        client_ip = request.headers.get("x-forwarded-for", "unknown")
+    if request.method == "OPTIONS" or request.url.path in RATE_LIMIT_EXEMPT_PATHS:
+        return await call_next(request)
 
+    client_ip = _client_ip(request)
     now = time.time()
 
     if len(RATE_LIMIT_STORE) % 100 == 0:
@@ -112,6 +113,19 @@ async def rate_limit_middleware(request: Request, call_next):
     RATE_LIMIT_STORE[client_ip].append(now)
     response = await call_next(request)
     return response
+
+
+# CORS: only the configured origins (CORS_ALLOW_ORIGINS). No cookies are used.
+# Added after the rate limiter so it is the outer layer: 429 responses still
+# carry CORS headers and browsers see the real status.
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.cors_origins,
+    allow_credentials=False,
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["Content-Type"],
+    expose_headers=["X-Session-Id"],
+)
 
 
 class ChatRequest(BaseModel):

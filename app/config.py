@@ -23,6 +23,10 @@ class Settings(BaseSettings):
         "http://localhost:3000,http://localhost:5173,http://localhost:5500,http://127.0.0.1:5500"
     )
 
+    # Use the first X-Forwarded-For entry as the client IP for rate limiting.
+    # Only enable behind a reverse proxy you control (clients can forge the header).
+    TRUST_PROXY: bool = False
+
     @property
     def cors_origins(self) -> list[str]:
         return [o.strip() for o in self.CORS_ALLOW_ORIGINS.split(",") if o.strip()]
