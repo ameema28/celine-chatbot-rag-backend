@@ -33,14 +33,21 @@ class VectorDatabase:
         self.index.add(embeddings.astype("float32"))
         print(f"Successfully indexed {self.index.ntotal} knowledge base segments into FAISS.")
 
-    def search_context(self, query: str, top_k: int = 3):
+    def search_with_scores(self, query: str, top_k: int = 3) -> list[tuple[dict, float]]:
+        """Top-k documents with their squared L2 distance (lower is closer)."""
         query_vector = self.encoder.encode([query], convert_to_numpy=True).astype("float32")
         distances, indices = self.index.search(query_vector, top_k)
+        return [
+            (self.documents[idx], float(dist))
+            for dist, idx in zip(distances[0], indices[0], strict=True)
+            if idx != -1 and idx < len(self.documents)
+        ]
 
-        results = []
-        for idx in indices[0]:
-            if idx != -1 and idx < len(self.documents):
-                results.append(self.documents[idx])
-        return results
+    def search_context(self, query: str, top_k: int = 3):
+        """Top-k documents within the relevance cutoff (may be empty)."""
+        max_distance = settings.RAG_MAX_L2_DISTANCE
+        return [
+            doc for doc, dist in self.search_with_scores(query, top_k) if dist <= max_distance
+        ]
 
 vector_db = VectorDatabase()

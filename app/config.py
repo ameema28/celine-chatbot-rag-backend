@@ -14,6 +14,10 @@ class Settings(BaseSettings):
     VERSION: str = "1.0.0"
     EMBEDDING_MODEL_NAME: str = "all-MiniLM-L6-v2"
 
+    # FAISS relevance cutoff (squared L2 on unit-length embeddings = 2 - 2*cos).
+    # Measured: on-topic queries 0.54-0.95, off-topic 1.62-1.87.
+    RAG_MAX_L2_DISTANCE: float = 1.20
+
     model_config = SettingsConfigDict(
         env_file=ENV_FILE_PATH,
         env_file_encoding="utf-8",
