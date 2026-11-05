@@ -5,6 +5,7 @@ from groq import APIConnectionError, APIError, AuthenticationError
 
 from app import llm
 from app.config import settings
+from app.price_guard import guard_reply
 from app.services.context_builder import build_turn, fallback_reply
 
 logger = logging.getLogger(__name__)
@@ -62,6 +63,8 @@ def generate_rag_response(
 
     if fallback_used:
         ai_reply = fallback_reply(turn)
+
+    ai_reply = guard_reply(ai_reply, turn.computed_prices, session_id)
 
     return {
         "reply": ai_reply,

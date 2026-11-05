@@ -140,6 +140,8 @@ def _system_prompt(chunks: list[dict], business_context: str) -> str:
         "Use the conversation history to understand what the user is referring to. "
         "Base factual details on the verified salon context below. "
         f"If the context does not contain the answer, say so politely and offer the phone number {PHONE}. "
+        "Only quote CHF prices that appear in the verified context or the computed prices; "
+        "never restate other amounts as prices. "
         "Always offer to help schedule an appointment at the end.\n\n"
         f"VERIFIED CONTEXT:\n{context_text}"
         f"{business_context}"
