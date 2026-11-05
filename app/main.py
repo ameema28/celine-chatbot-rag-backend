@@ -51,12 +51,14 @@ def _cleanup_rate_limit_store():
 def _startup_tasks():
     """Run once at server startup."""
     logger.info(f"Starting {settings.PROJECT_NAME} v{settings.VERSION}")
-    if not settings.GROQ_API_KEY:
-        logger.critical("GROQ_API_KEY missing. Offline fallback mode active.")
-    else:
-        masked = f"{settings.GROQ_API_KEY[:8]}...{settings.GROQ_API_KEY[-4:]}"
-        logger.info(f"GROQ_API_KEY loaded: {masked}")
+    # Never log any part of the key itself, only whether live mode is possible.
+    key = settings.GROQ_API_KEY or ""
+    key_usable = bool(key) and not key.startswith("your_") and len(key) >= 20
+    if key_usable:
+        logger.info("GROQ_API_KEY loaded: yes")
         logger.info(f"Model: {settings.GROQ_MODEL_NAME}")
+    else:
+        logger.warning("GROQ_API_KEY loaded: no")
     logger.info("Streaming: ENABLED")
     logger.info("Business Rules: ENABLED")
     logger.info("CORS: ENABLED")
@@ -188,7 +190,7 @@ def ai_chat_endpoint(payload: ChatRequest):
     history = _load_session(session_id) or []
     history = history[-12:]
 
-    logger.info(f"[{session_id}] Query: '{payload.message[:60]}...'")
+    logger.info(f"[{session_id}] Query received (len={len(payload.message)})")
 
     response_data = generate_rag_response(
         user_query=payload.message,
@@ -229,7 +231,7 @@ async def ai_chat_stream_endpoint(payload: ChatRequest):
     history = _load_session(session_id) or []
     history = history[-12:]
 
-    logger.info(f"[STREAM] [{session_id}] Query: '{payload.message[:60]}...'")
+    logger.info(f"[STREAM] [{session_id}] Query received (len={len(payload.message)})")
     start_time = time.time()
 
     async def event_generator():
