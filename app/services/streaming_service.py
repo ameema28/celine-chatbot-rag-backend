@@ -1,7 +1,7 @@
 import logging
 from typing import AsyncGenerator, List, Dict
 
-from groq import Groq
+from app import llm
 from app.database import vector_db
 from app.config import settings
 from app.business_rules import SALON_POLICIES, get_cancellation_policy
@@ -51,7 +51,7 @@ async def generate_streaming_rag_response(
     messages.append({"role": "user", "content": user_query})
 
     try:
-        client = Groq(api_key=settings.GROQ_API_KEY)
+        client = llm.get_groq_client()
         stream = client.chat.completions.create(
             model=GROQ_MODEL,
             messages=messages,

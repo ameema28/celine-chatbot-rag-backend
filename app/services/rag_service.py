@@ -2,7 +2,8 @@ import logging
 import time
 from typing import List, Dict
 
-from groq import Groq, APIError, APIConnectionError, AuthenticationError
+from groq import APIError, APIConnectionError, AuthenticationError
+from app import llm
 from app.database import vector_db
 from app.config import settings
 from app.business_rules import SALON_POLICIES, get_cancellation_policy
@@ -88,15 +89,15 @@ def generate_rag_response(
     if not settings.GROQ_API_KEY:
         logger.error(f"[{session_id}] GROQ_API_KEY missing")
         fallback_used = True
-    elif settings.GROQ_API_KEY.startswith("your_") or len(settings.GROQ_API_KEY) < 20:
+    elif not llm.groq_key_usable():
         logger.warning(f"[{session_id}] GROQ_API_KEY appears to be a placeholder")
         fallback_used = True
     else:
         try:
             start_time = time.time()
-            
+
             logger.info(f"[{session_id}] Calling Groq: {GROQ_MODEL}")
-            client = Groq(api_key=settings.GROQ_API_KEY)
+            client = llm.get_groq_client()
             completion = client.chat.completions.create(
                 model=GROQ_MODEL,
                 messages=messages,

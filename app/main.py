@@ -7,6 +7,7 @@ from fastapi import FastAPI, Request
 from fastapi.responses import StreamingResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
+from app import llm
 from app.config import settings
 from app.services.rag_service import generate_rag_response
 from app.services.streaming_service import generate_streaming_rag_response
@@ -38,9 +39,7 @@ def _startup_tasks():
     """Run once at server startup."""
     logger.info(f"Starting {settings.PROJECT_NAME} v{settings.VERSION}")
     # Never log any part of the key itself, only whether live mode is possible.
-    key = settings.GROQ_API_KEY or ""
-    key_usable = bool(key) and not key.startswith("your_") and len(key) >= 20
-    if key_usable:
+    if llm.groq_key_usable():
         logger.info("GROQ_API_KEY loaded: yes")
         logger.info(f"Model: {settings.GROQ_MODEL_NAME}")
     else:

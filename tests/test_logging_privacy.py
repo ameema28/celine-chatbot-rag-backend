@@ -2,7 +2,6 @@
 
 import logging
 
-import pytest
 from fastapi.testclient import TestClient
 
 from app import main
@@ -10,13 +9,6 @@ from app.config import settings
 
 FAKE_KEY = "test-not-a-real-key-000000000000"
 SECRET_MESSAGE = "zebra-umbrella-marker-7731"
-
-
-@pytest.fixture(autouse=True)
-def _fresh_rate_limit():
-    main.RATE_LIMIT_STORE.clear()
-    yield
-    main.RATE_LIMIT_STORE.clear()
 
 
 def test_startup_log_says_yes_without_key_characters(monkeypatch, caplog):

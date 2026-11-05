@@ -3,7 +3,9 @@ import json
 import os
 from typing import List, Dict, Optional
 
-DB_PATH = os.path.join(os.path.dirname(__file__), "..", "sessions.db")
+DB_PATH = os.environ.get("SESSIONS_DB_PATH") or os.path.join(
+    os.path.dirname(__file__), "..", "sessions.db"
+)
 
 
 def init_db():

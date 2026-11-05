@@ -16,7 +16,7 @@ def test_health_check():
     assert data["session_store"] == "sqlite"
     assert "firebase_ready" not in data
 
-def test_chat_endpoint_basic():
+def test_chat_endpoint_basic(live_llm):
     """Verify standard chat endpoint returns valid JSON structure."""
     response = client.post("/api/ai/chat", json={"message": "Hello"})
     assert response.status_code == 200
