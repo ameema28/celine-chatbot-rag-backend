@@ -5,9 +5,17 @@ same retrieval, intent, business rules, grounded prompt and fallback text.
 """
 
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from decimal import Decimal
 
-from app.business_rules import SALON_POLICIES, get_cancellation_policy
+from app.business_rules import (
+    SALON_POLICIES,
+    calculate_price,
+    detect_client_status,
+    get_cancellation_policy,
+    money,
+    price_items_from_entry,
+)
 from app.database import vector_db
 
 PHONE = SALON_POLICIES["contact"]["phone"]
@@ -25,6 +33,7 @@ class Turn:
     chunks: list[dict]
     system_prompt: str
     messages: list[dict]
+    computed_prices: list[Decimal] = field(default_factory=list)
 
 
 def classify_intent(user_query: str) -> str:
@@ -66,6 +75,60 @@ def _business_context(user_query: str) -> str:
     return ""
 
 
+def format_chf(value: Decimal) -> str:
+    """CHF 45 for whole amounts, CHF 40.50 otherwise."""
+    value = money(value)
+    return f"CHF {int(value)}" if value == value.to_integral_value() else f"CHF {value:.2f}"
+
+
+def _pricing_block(chunks: list[dict], user_query: str) -> tuple[str, list[Decimal]]:
+    """Computed discount/deposit figures for the prices in the retrieved entries."""
+    vip_pct = SALON_POLICIES["discounts"]["vip"]["percentage"]
+    first_pct = SALON_POLICIES["discounts"]["first_time"]["percentage"]
+    deposit_pct = int(SALON_POLICIES["deposits"]["luxury_rate"] * 100)
+
+    lines: list[str] = []
+    computed: list[Decimal] = []
+    for chunk in chunks:
+        for item in price_items_from_entry(chunk):
+            vip = money(calculate_price(item.base, is_vip=True)["final"])
+            first = money(calculate_price(item.base, is_first_time=True)["final"])
+            parts = [
+                f"- {item.service}: {format_chf(item.base)}",
+                f"VIP {vip_pct}%: {format_chf(vip)}",
+                f"first-time {first_pct}%: {format_chf(first)}",
+            ]
+            computed += [vip, first]
+            if item.deposit is not None:
+                parts.append(f"deposit {deposit_pct}%: {format_chf(item.deposit)}")
+                computed.append(item.deposit)
+            lines.append(" | ".join(parts))
+
+    is_vip, is_first = detect_client_status(user_query)
+    if is_vip:
+        status = (
+            f"Client mentions VIP: the VIP {vip_pct}% price applies to VIP clients "
+            "(VIP and first-time discounts never combine)."
+        )
+    elif is_first:
+        status = f"Client mentions a first visit: the first-time {first_pct}% price applies."
+    else:
+        status = (
+            "Client status not stated: quote the listed price and mention the VIP and "
+            "first-time discounts if relevant."
+        )
+    luxury = ", ".join(SALON_POLICIES["deposits"]["luxury_services"])
+    block = ""
+    if lines:
+        block += (
+            "\n\nCOMPUTED PRICES (exact figures; do not calculate other amounts):\n"
+            + "\n".join(lines)
+            + "\n"
+        )
+    block += f"{status}\nLUXURY SERVICES ({deposit_pct}% deposit on the listed price): {luxury}\n"
+    return block, computed
+
+
 def _system_prompt(chunks: list[dict], business_context: str) -> str:
     context_blocks = [f"[{i}] {c['category']}: {c['answer']}" for i, c in enumerate(chunks, 1)]
     context_text = "\n".join(context_blocks) if context_blocks else "No specific salon documents matched."
@@ -87,16 +150,23 @@ def build_turn(user_query: str, history: list[dict] | None = None) -> Turn:
     """Retrieve context and build the prompt/messages for one user message."""
     history = history or []
     chunks = vector_db.search_context(user_query, top_k=3)
-    system_prompt = _system_prompt(chunks, _business_context(user_query))
+    intent = classify_intent(user_query)
+    business = _business_context(user_query)
+    computed: list[Decimal] = []
+    if intent == "intent_pricing":
+        pricing, computed = _pricing_block(chunks, user_query)
+        business += pricing
+    system_prompt = _system_prompt(chunks, business)
     messages = [{"role": "system", "content": system_prompt}]
     messages += [{"role": t["role"], "content": t["content"]} for t in history]
     messages.append({"role": "user", "content": user_query})
     return Turn(
         user_query=user_query,
-        intent=classify_intent(user_query),
+        intent=intent,
         chunks=chunks,
         system_prompt=system_prompt,
         messages=messages,
+        computed_prices=computed,
     )
 
 
