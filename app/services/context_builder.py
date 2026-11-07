@@ -19,6 +19,7 @@ from app.business_rules import (
 from app.config import settings
 from app.database import vector_db
 from app.language import LANGUAGE_NAMES, detect_language, to_english_query
+from app.spelling import correct_service_words
 
 PHONE = SALON_POLICIES["contact"]["phone"]
 
@@ -142,12 +143,17 @@ def _language_rule(lang: str) -> str:
     return rule
 
 
-def _search(user_query: str, english_query: str) -> list[dict]:
-    """Top-3 within the cutoff; French questions also search their English terms."""
-    if not english_query:
-        return vector_db.search_context(user_query, top_k=3)
+def _search(queries: list[str]) -> list[dict]:
+    """Top-3 within the cutoff over all queries (best distance per entry wins).
+
+    The queries are the user's message plus its variants: English glossary terms
+    for French, the typo-corrected text, and the follow-up combination.
+    """
+    queries = [q for i, q in enumerate(queries) if q and q not in queries[:i]]
+    if len(queries) == 1:
+        return vector_db.search_context(queries[0], top_k=3)
     best: dict[str, tuple[dict, float]] = {}
-    for query in (user_query, english_query):
+    for query in queries:
         for doc, dist in vector_db.search_with_scores(query, top_k=3):
             if doc["id"] not in best or dist < best[doc["id"]][1]:
                 best[doc["id"]] = (doc, dist)
@@ -180,9 +186,11 @@ def build_turn(user_query: str, history: list[dict] | None = None) -> Turn:
     history = history or []
     lang = detect_language(user_query)
     english_query = to_english_query(user_query) if lang == "fr" else ""
-    chunks = _search(user_query, english_query)
-    # Keyword rules are English; French questions are matched via their glossary terms.
-    rule_text = f"{user_query} {english_query}".strip()
+    corrected = correct_service_words(user_query)
+    chunks = _search([user_query, english_query, corrected])
+    # Keyword rules are English; French questions are matched via their glossary terms
+    # and misspelled service words via their corrected form.
+    rule_text = " ".join(t for t in (corrected, english_query) if t)
     intent = classify_intent(rule_text)
     business = _business_context(rule_text)
     computed: list[Decimal] = []
