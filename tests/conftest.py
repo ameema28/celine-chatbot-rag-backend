@@ -73,9 +73,11 @@ def fake_groq(monkeypatch):
     monkeypatch.setattr(groq, "Groq", _real_groq_forbidden)
     main.RATE_LIMIT_STORE.clear()
     main.SESSION_MEMORY.clear()
+    main.SESSION_LAST_USED.clear()
     yield fake
     main.RATE_LIMIT_STORE.clear()
     main.SESSION_MEMORY.clear()
+    main.SESSION_LAST_USED.clear()
 
 
 @pytest.fixture

@@ -1,6 +1,7 @@
 import logging
 import time
 import uuid
+from collections import OrderedDict
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -22,7 +23,30 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-SESSION_MEMORY: dict[str, list[dict[str, str]]] = {}
+# In-memory session copy, least recently used first; bounded by _evict_sessions().
+SESSION_MEMORY: OrderedDict[str, list[dict[str, str]]] = OrderedDict()
+SESSION_LAST_USED: dict[str, float] = {}
+
+
+def _now() -> float:
+    return time.monotonic()
+
+
+def _touch_session(session_id: str):
+    SESSION_MEMORY.move_to_end(session_id)
+    SESSION_LAST_USED[session_id] = _now()
+
+
+def _evict_sessions():
+    """Drop in-memory sessions idle longer than SESSION_TTL_MINUTES, then the least
+    recently used ones above SESSION_MEMORY_MAX_SESSIONS. SQLite is not touched."""
+    cutoff = _now() - settings.SESSION_TTL_MINUTES * 60
+    for session_id in [s for s, used in SESSION_LAST_USED.items() if used < cutoff]:
+        SESSION_MEMORY.pop(session_id, None)
+        del SESSION_LAST_USED[session_id]
+    while len(SESSION_MEMORY) > settings.SESSION_MEMORY_MAX_SESSIONS:
+        session_id, _ = SESSION_MEMORY.popitem(last=False)
+        SESSION_LAST_USED.pop(session_id, None)
 
 # Rate Limiting Middleware: max 10 requests per minute per IP
 RATE_LIMIT_STORE: dict[str, list[float]] = {}
@@ -169,6 +193,8 @@ class ChatResponse(BaseModel):
 def _persist_session(session_id: str, history: list[dict[str, str]]):
     """Save to SQLite; the in-memory copy is the fallback if SQLite fails."""
     SESSION_MEMORY[session_id] = history
+    _touch_session(session_id)
+    _evict_sessions()
 
     try:
         save_session(session_id, history)
@@ -185,7 +211,11 @@ def _load_session(session_id: str) -> list[dict[str, str]] | None:
     except Exception as e:  # noqa: BLE001 - fall back to the in-memory copy on any storage error
         logger.error(f"SQLite load failed [{session_id}]: {e}")
 
-    return SESSION_MEMORY.get(session_id)
+    _evict_sessions()
+    if session_id not in SESSION_MEMORY:
+        return None
+    _touch_session(session_id)
+    return SESSION_MEMORY[session_id]
 
 
 @app.post("/api/ai/chat", response_model=ChatResponse, tags=["AI Concierge"], summary="Standard chat with JSON response")

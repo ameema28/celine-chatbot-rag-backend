@@ -32,6 +32,11 @@ class Settings(BaseSettings):
     # left are client-supplied and ignored, so they cannot be used to spoof.
     TRUST_PROXY_HOPS: int = Field(1, ge=1)
 
+    # In-memory session copy (SQLite stays the source of truth): drop sessions unused
+    # for this many minutes, and keep at most this many (least recently used first).
+    SESSION_TTL_MINUTES: int = Field(60, ge=1)
+    SESSION_MEMORY_MAX_SESSIONS: int = Field(1000, ge=1)
+
     @property
     def cors_origins(self) -> list[str]:
         return [o.strip() for o in self.CORS_ALLOW_ORIGINS.split(",") if o.strip()]
