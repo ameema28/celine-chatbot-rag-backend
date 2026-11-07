@@ -52,6 +52,8 @@ class Turn:
     messages: list[dict]
     computed_prices: list[Decimal] = field(default_factory=list)
     lang: str = "en"
+    # True when the session has no earlier reply (the offline fallback greets only then).
+    first_reply: bool = True
 
 
 def classify_intent(user_query: str) -> str:
@@ -240,6 +242,7 @@ def build_turn(user_query: str, history: list[dict] | None = None) -> Turn:
         messages=messages,
         computed_prices=computed,
         lang=lang,
+        first_reply=not any(t.get("role") == "assistant" for t in history),
     )
 
 
@@ -247,22 +250,24 @@ def fallback_reply(turn: Turn) -> str:
     """Offline reply built only from retrieved salon data (no LLM).
 
     The data is English-only, so the French version says so instead of
-    pretending to translate.
+    pretending to translate. The greeting is only used on a session's first reply.
     """
     if turn.lang == "fr":
+        greeting = "Bienvenue chez Celine Esthetique. " if turn.first_reply else ""
         if turn.chunks:
             return (
-                "Bienvenue chez Celine Esthetique. Voici l'information disponible (en anglais) : "
+                f"{greeting}Voici l'information disponible (en anglais) : "
                 f"{turn.chunks[0]['answer']} Souhaitez-vous prendre rendez-vous ? "
                 f"Appelez-nous au {PHONE}."
             )
-        return f"Bienvenue chez Celine Esthetique. Veuillez nous contacter au {PHONE}."
+        return f"{greeting}Veuillez nous contacter au {PHONE}."
+    greeting = "Welcome to Celine Esthetique. " if turn.first_reply else ""
     if turn.chunks:
         return (
-            f"Welcome to Celine Esthetique. {turn.chunks[0]['answer']} "
+            f"{greeting}{turn.chunks[0]['answer']} "
             "Would you like help scheduling an appointment?"
         )
-    return f"Welcome to Celine Esthetique. Please contact us at {PHONE}."
+    return f"{greeting}Please contact us at {PHONE}."
 
 
 def word_chunks(text: str) -> list[str]:
