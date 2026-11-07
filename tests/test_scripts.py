@@ -16,6 +16,7 @@ def _load(name):
 
 
 smoke = _load("smoke_check")
+bench = _load("benchmark")
 
 
 @pytest.mark.parametrize("inside", [".", "results.json", "scripts/out.json"])
@@ -53,3 +54,55 @@ def test_parse_sse_events_and_multiline_data():
 )
 def test_mentions_chf_amount(reply, expected):
     assert smoke.mentions_chf_amount(reply, "30") is expected
+
+
+@pytest.mark.parametrize(
+    "values, p, expected",
+    [
+        (list(range(1, 21)), 50, 10),
+        (list(range(1, 21)), 95, 19),
+        (list(range(1, 21)), 100, 20),
+        ([5.0], 95, 5.0),
+        ([30, 10, 20], 50, 20),
+        ([], 50, None),
+    ],
+)
+def test_benchmark_nearest_rank_percentile(values, p, expected):
+    assert bench.percentile(values, p) == expected
+
+
+def test_benchmark_out_path_inside_repo_is_refused():
+    with pytest.raises(ValueError, match="outside the repository"):
+        bench.resolve_out_path(str(bench.REPO_ROOT / "bench.json"))
+
+
+def test_benchmark_default_out_path_is_outside_repo():
+    path = bench.resolve_out_path(None)
+    assert bench.REPO_ROOT not in path.parents
+    assert path.name.startswith("celine_benchmark_")
+
+
+def test_benchmark_interval_below_rate_limit_needs_force():
+    assert bench.validate_interval(6.5, force=False) == 6.5
+    with pytest.raises(ValueError, match="--force"):
+        bench.validate_interval(2.0, force=False)
+    assert bench.validate_interval(2.0, force=True) == 2.0
+    with pytest.raises(ValueError):
+        bench.validate_interval(-1, force=True)
+
+
+def test_benchmark_summary_counts_and_stats():
+    records = [
+        {"status": 200, "fallback_used": False, "server_ms": 400, "client_ms": 600},
+        {"status": 200, "fallback_used": False, "server_ms": 200, "client_ms": 500},
+        {"status": 200, "fallback_used": True, "server_ms": 0, "client_ms": 100},
+        {"status": 429, "client_ms": 50},
+        {"status": None, "error": "URLError: x", "client_ms": 90000},
+    ]
+    summary = bench.summarize(records)
+    assert summary["ok"] == 3
+    assert summary["rate_limited_429"] == 1
+    assert summary["errors"] == 1
+    assert summary["fallback_count"] == 1
+    assert summary["client_ms"] == {"count": 3, "p50": 500, "p95": 600, "max": 600}
+    assert summary["server_ms_live"] == {"count": 2, "p50": 200, "p95": 400, "max": 400}

@@ -130,6 +130,18 @@ What it checks:
 
 It makes about 4 live LLM calls per run and takes about 2.5 minutes (two waits of 61 s for fresh rate-limit windows). `--skip-rate-limit` skips the last two checks.
 
+### Latency benchmark
+
+`scripts/benchmark.py` (stdlib only, no API key) sends one warm-up request, which is excluded from the stats, then N sequential `/api/ai/chat` requests, each in a new session. It prints p50, p95 and max (nearest-rank), plus the fallback, 429 and error counts.
+
+```bash
+python scripts/benchmark.py --url https://<service-url> -n 20 --out ../_facts/celine_benchmark.json
+```
+
+- **Pacing:** requests are spaced 6.5 s apart, so one client stays under 10 requests/minute (about 2.5 minutes for N=20). Wait 60 s after the smoke check before starting.
+- **Two timings:** client times include your network; `response_time_ms` from the server is LLM time only.
+- **Exit status:** the script exits non-zero unless every measured request returned 200.
+
 ### Checking the client IP the rate limiter sees
 
 Not yet verified on Cloud Run: whether the right-most `X-Forwarded-For` entry is the visitor's IP or a Google address. After `scripts/smoke_check.py` triggers a 429, the service log has a line `Rate limit exceeded for IP: <ip>`. Compare `<ip>` with your own public IP:
