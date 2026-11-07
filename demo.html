@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- API base for local use. When the API serves this page at GET /, it sets content="" (same origin). -->
+    <meta name="celine-api-base" content="http://127.0.0.1:8000">
     <title>Celine Esthetique - AI Concierge Demo</title>
     <style>
         body { font-family: 'Segoe UI', sans-serif; max-width: 600px; margin: 40px auto; padding: 20px; background: #f9f9f9; }
@@ -30,8 +32,16 @@
     </div>
 
     <script>
-        // API base URL: ?api=https://your-host overrides the local default.
-        const DEFAULT_API_BASE = "http://127.0.0.1:8000";
+        // API base URL, in order: ?api=https://your-host, then the celine-api-base
+        // meta tag (empty = this page's own origin), then the local default.
+        const LOCAL_API_BASE = "http://127.0.0.1:8000";
+        function defaultApiBase() {
+            const meta = document.querySelector('meta[name="celine-api-base"]');
+            if (!meta) return LOCAL_API_BASE;
+            if (meta.content === "") return window.location.origin;
+            return meta.content;
+        }
+        const DEFAULT_API_BASE = defaultApiBase();
         function resolveApiBase() {
             const candidate = new URLSearchParams(window.location.search).get("api");
             if (!candidate) return DEFAULT_API_BASE;

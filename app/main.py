@@ -2,10 +2,11 @@ import logging
 import time
 import uuid
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse
 from pydantic import BaseModel, Field
 
 from app import llm
@@ -73,8 +74,23 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# Preflights and health/docs routes are never rate limited.
-RATE_LIMIT_EXEMPT_PATHS = {"/health", "/docs", "/redoc", "/openapi.json"}
+# Preflights, the demo page and health/docs routes are never rate limited.
+RATE_LIMIT_EXEMPT_PATHS = {"/", "/health", "/docs", "/redoc", "/openapi.json"}
+
+# demo.html is served at GET / with its API base switched to the page's own origin.
+DEMO_PAGE_PATH = Path(__file__).resolve().parent.parent / "demo.html"
+DEMO_LOCAL_API_META = '<meta name="celine-api-base" content="http://127.0.0.1:8000">'
+DEMO_SAME_ORIGIN_META = '<meta name="celine-api-base" content="">'
+
+
+def _load_demo_page() -> str:
+    html = DEMO_PAGE_PATH.read_text(encoding="utf-8")
+    if DEMO_LOCAL_API_META not in html:
+        raise RuntimeError("demo.html is missing the celine-api-base meta tag")
+    return html.replace(DEMO_LOCAL_API_META, DEMO_SAME_ORIGIN_META)
+
+
+DEMO_PAGE_HTML = _load_demo_page()
 
 
 def _client_ip(request: Request) -> str:
@@ -257,6 +273,12 @@ async def ai_chat_stream_endpoint(payload: ChatRequest):
             "Connection": "keep-alive"
         }
     )
+
+
+@app.get("/", include_in_schema=False, response_class=HTMLResponse)
+def demo_page():
+    """The chat demo page; it calls the API on this same origin."""
+    return HTMLResponse(DEMO_PAGE_HTML)
 
 
 @app.get("/health", tags=["System"], summary="Health and status check")
