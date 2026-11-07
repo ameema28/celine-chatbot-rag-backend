@@ -140,6 +140,13 @@
             summary.textContent = "Show details";
             details.appendChild(summary);
 
+            // The offline fallback is not timed (response_time_ms is 0), so no time is shown for it.
+            function formatResponseTime(data) {
+                if (data.fallback_used) return "n/a (offline fallback)";
+                if (data.response_time_ms === 0) return "< 1 ms";
+                return `${data.response_time_ms} ms`;
+            }
+
             const dl = document.createElement("dl");
             function row(label, value) {
                 const dt = document.createElement("dt");
@@ -150,7 +157,7 @@
             }
             row("Intent", data.intent);
             row("Fallback used", data.fallback_used ? "yes (offline answer, no live model)" : "no (live model)");
-            row("Response time", `${data.response_time_ms} ms`);
+            row("Response time", formatResponseTime(data));
             const sources = data.retrieved_context || [];
             if (sources.length) {
                 const ul = document.createElement("ul");
