@@ -7,29 +7,61 @@
     <meta name="celine-api-base" content="http://127.0.0.1:8000">
     <title>Celine Esthetique - AI Concierge Demo</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; max-width: 600px; margin: 40px auto; padding: 20px; background: #f9f9f9; }
-        h1 { color: #1a1a1a; text-align: center; }
-        .chat-box { border: 1px solid #ddd; border-radius: 12px; padding: 20px; background: white; min-height: 300px; }
-        .message { margin: 10px 0; padding: 10px 15px; border-radius: 18px; max-width: 80%; }
-        .user { background: #d4af37; color: #1a1a1a; margin-left: auto; text-align: right; }
-        .bot { background: #f9e4e0; color: #1a1a1a; }
-        .input-area { display: flex; gap: 10px; margin-top: 20px; }
-        input { flex: 1; padding: 12px; border: 1px solid #ddd; border-radius: 24px; font-size: 16px; }
-        button { padding: 12px 24px; background: #d4af37; border: none; border-radius: 24px; color: #1a1a1a; font-weight: bold; cursor: pointer; }
-        button:hover { background: #c5a028; }
-        .status { text-align: center; color: #666; font-size: 14px; margin-top: 10px; }
+        * { box-sizing: border-box; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; max-width: 640px; margin: 0 auto; padding: 24px 16px; background: #f9f9f9; color: #1a1a1a; }
+        h1 { text-align: center; font-size: 1.5rem; margin: 0 0 8px; }
+        .status { text-align: center; color: #666; font-size: 14px; margin-bottom: 16px; }
+        .examples { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+        .example-btn { padding: 8px 12px; border: 1px solid #d4af37; border-radius: 16px; background: white; color: #1a1a1a; font-size: 14px; cursor: pointer; }
+        .example-btn:hover, .example-btn:focus-visible { background: #fbf3dc; }
+        .chat-box { border: 1px solid #ddd; border-radius: 12px; padding: 16px; background: white; min-height: 300px; max-height: 60vh; overflow-y: auto; }
+        .message { margin: 10px 0; padding: 10px 15px; border-radius: 18px; max-width: 85%; overflow-wrap: anywhere; white-space: pre-wrap; }
+        .user { background: #d4af37; margin-left: auto; text-align: right; }
+        .bot { background: #f9e4e0; }
+        .error { background: #fde8e8; color: #8a1c1c; }
+        .details { max-width: 85%; margin: -4px 0 12px 8px; font-size: 13px; color: #555; }
+        .details summary { cursor: pointer; }
+        .details dl { margin: 6px 0 0; display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; }
+        .details dt { font-weight: 600; }
+        .details dd { margin: 0; }
+        .details ul { margin: 0; padding-left: 18px; }
+        .typing { display: inline-flex; gap: 4px; align-items: center; }
+        .typing span { width: 7px; height: 7px; border-radius: 50%; background: #b08a8a; animation: blink 1.2s infinite ease-in-out; }
+        .typing span:nth-child(2) { animation-delay: 0.2s; }
+        .typing span:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes blink { 0%, 80%, 100% { opacity: 0.25; } 40% { opacity: 1; } }
+        @media (prefers-reduced-motion: reduce) { .typing span { animation: none; opacity: 0.6; } }
+        .input-area { display: flex; gap: 8px; margin-top: 16px; }
+        input { flex: 1; min-width: 0; padding: 12px; border: 1px solid #ddd; border-radius: 24px; font-size: 16px; }
+        button.send { padding: 12px 20px; background: #d4af37; border: none; border-radius: 24px; color: #1a1a1a; font-weight: bold; font-size: 16px; cursor: pointer; }
+        button.send:hover { background: #c5a028; }
+        button:disabled { opacity: 0.6; cursor: wait; }
+        @media (max-width: 480px) {
+            body { padding: 16px 12px; }
+            h1 { font-size: 1.25rem; }
+            .message, .details { max-width: 95%; }
+            button.send { padding: 12px 16px; }
+        }
     </style>
 </head>
 <body>
     <h1>Celine Esthetique - AI Concierge</h1>
     <div class="status" id="status">Checking API status...</div>
-    <div class="chat-box" id="chatBox">
+
+    <div class="examples" aria-label="Example questions">
+        <button type="button" class="example-btn" data-lang="en" data-question="How much is a manicure?">How much is a manicure?</button>
+        <button type="button" class="example-btn" data-lang="en" data-question="What is your cancellation policy?">What is your cancellation policy?</button>
+        <button type="button" class="example-btn" data-lang="fr" data-question="Combien coûte une pédicure ?">Combien coûte une pédicure ?</button>
+        <button type="button" class="example-btn" data-lang="fr" data-question="Proposez-vous des extensions de cils ?">Proposez-vous des extensions de cils ?</button>
+    </div>
+
+    <div class="chat-box" id="chatBox" aria-live="polite">
         <div class="message bot">Welcome to Celine Esthetique. How may I assist you today?</div>
     </div>
-    <div class="input-area">
-        <input type="text" id="messageInput" placeholder="Ask about our services..." onkeypress="if(event.key==='Enter')sendMessage()">
-        <button onclick="sendMessage()">Send</button>
-    </div>
+    <form class="input-area" id="chatForm">
+        <input type="text" id="messageInput" maxlength="500" placeholder="Ask about our services..." aria-label="Your message" autocomplete="off">
+        <button type="submit" class="send" id="sendBtn">Send</button>
+    </form>
 
     <script>
         // API base URL, in order: ?api=https://your-host, then the celine-api-base
@@ -56,29 +88,99 @@
         const API_BASE = resolveApiBase();
         const API_URL = `${API_BASE}/api/ai/chat`;
         let sessionId = null;
+        let busy = false;
+
+        const chatBox = document.getElementById("chatBox");
+        const input = document.getElementById("messageInput");
+        const sendBtn = document.getElementById("sendBtn");
+        const exampleButtons = document.querySelectorAll(".example-btn");
 
         // Check API health on load
         fetch(`${API_BASE}/health`)
             .then(r => r.json())
             .then(data => {
-                document.getElementById("status").textContent = 
+                document.getElementById("status").textContent =
                     `API: ${data.status} | Model: ${data.model} | Version: ${data.version}`;
             })
             .catch(() => {
-                document.getElementById("status").textContent = "API offline. Start the server first.";
-                document.getElementById("status").style.color = "red";
+                const status = document.getElementById("status");
+                status.textContent = "API offline. Start the server first.";
+                status.style.color = "red";
             });
 
-        async function sendMessage() {
-            const input = document.getElementById("messageInput");
-            const message = input.value.trim();
-            if (!message) return;
+        function scrollToEnd() { chatBox.scrollTop = chatBox.scrollHeight; }
 
-            // Show user message
+        function addMessage(text, sender) {
+            const div = document.createElement("div");
+            div.className = `message ${sender}`;
+            div.textContent = text;
+            chatBox.appendChild(div);
+            scrollToEnd();
+            return div;
+        }
+
+        function showTyping() {
+            const div = document.createElement("div");
+            div.className = "message bot";
+            div.setAttribute("aria-label", "The concierge is typing");
+            const dots = document.createElement("span");
+            dots.className = "typing";
+            for (let i = 0; i < 3; i++) dots.appendChild(document.createElement("span"));
+            div.appendChild(dots);
+            chatBox.appendChild(div);
+            scrollToEnd();
+            return div;
+        }
+
+        // "Show details" lists only fields the API returned for this reply.
+        function addDetails(data) {
+            const details = document.createElement("details");
+            details.className = "details";
+            const summary = document.createElement("summary");
+            summary.textContent = "Show details";
+            details.appendChild(summary);
+
+            const dl = document.createElement("dl");
+            function row(label, value) {
+                const dt = document.createElement("dt");
+                dt.textContent = label;
+                const dd = document.createElement("dd");
+                if (value instanceof Node) dd.appendChild(value); else dd.textContent = value;
+                dl.append(dt, dd);
+            }
+            row("Intent", data.intent);
+            row("Fallback used", data.fallback_used ? "yes (offline answer, no live model)" : "no (live model)");
+            row("Response time", `${data.response_time_ms} ms`);
+            const sources = data.retrieved_context || [];
+            if (sources.length) {
+                const ul = document.createElement("ul");
+                sources.forEach(src => {
+                    const li = document.createElement("li");
+                    li.textContent = `${src.category}: ${src.question}`;
+                    ul.appendChild(li);
+                });
+                row("Sources", ul);
+            } else {
+                row("Sources", "none matched");
+            }
+            details.appendChild(dl);
+            chatBox.appendChild(details);
+            scrollToEnd();
+        }
+
+        function setBusy(value) {
+            busy = value;
+            sendBtn.disabled = value;
+            exampleButtons.forEach(b => { b.disabled = value; });
+        }
+
+        async function sendMessage(text) {
+            const message = (text || "").trim();
+            if (!message || busy) return;
             addMessage(message, "user");
             input.value = "";
-
-            // Call API
+            setBusy(true);
+            const typing = showTyping();
             try {
                 const response = await fetch(API_URL, {
                     method: "POST",
@@ -86,25 +188,31 @@
                     body: JSON.stringify({ message: message, session_id: sessionId })
                 });
                 const data = await response.json();
-                
-                // Store session_id for continuity
+                typing.remove();
+                if (!response.ok) {
+                    const detail = typeof data.detail === "string" ? data.detail : `Request failed (HTTP ${response.status}).`;
+                    addMessage(detail, "error");
+                    return;
+                }
                 if (data.session_id) sessionId = data.session_id;
-                
-                // Show bot response
                 addMessage(data.reply, "bot");
+                addDetails(data);
             } catch (err) {
-                addMessage("Error: Could not connect to AI service.", "bot");
+                typing.remove();
+                addMessage("Error: Could not connect to AI service.", "error");
+            } finally {
+                setBusy(false);
+                input.focus();
             }
         }
 
-        function addMessage(text, sender) {
-            const box = document.getElementById("chatBox");
-            const div = document.createElement("div");
-            div.className = `message ${sender}`;
-            div.textContent = text;
-            box.appendChild(div);
-            box.scrollTop = box.scrollHeight;
-        }
+        document.getElementById("chatForm").addEventListener("submit", event => {
+            event.preventDefault();
+            sendMessage(input.value);
+        });
+        exampleButtons.forEach(button => {
+            button.addEventListener("click", () => sendMessage(button.dataset.question));
+        });
     </script>
 </body>
 </html>
