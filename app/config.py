@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -23,9 +24,13 @@ class Settings(BaseSettings):
         "http://localhost:3000,http://localhost:5173,http://localhost:5500,http://127.0.0.1:5500"
     )
 
-    # Use the first X-Forwarded-For entry as the client IP for rate limiting.
-    # Only enable behind a reverse proxy you control (clients can forge the header).
+    # Take the client IP for rate limiting from X-Forwarded-For. Only enable behind
+    # a reverse proxy that appends the client IP to that header.
     TRUST_PROXY: bool = False
+    # Number of trusted proxies that append to X-Forwarded-For. The client IP is
+    # the entry this many places from the right (1 = right-most). Entries further
+    # left are client-supplied and ignored, so they cannot be used to spoof.
+    TRUST_PROXY_HOPS: int = Field(1, ge=1)
 
     @property
     def cors_origins(self) -> list[str]:

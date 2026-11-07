@@ -94,11 +94,19 @@ DEMO_PAGE_HTML = _load_demo_page()
 
 
 def _client_ip(request: Request) -> str:
-    """X-Forwarded-For (first entry) only when TRUST_PROXY=true, else the socket peer."""
+    """Client IP for rate limiting.
+
+    With TRUST_PROXY=true: the X-Forwarded-For entry TRUST_PROXY_HOPS places from
+    the right (default 1 = right-most, the one the trusted proxy appended). Entries
+    to its left are client-supplied and ignored. If the header has fewer entries
+    than that, or TRUST_PROXY is off, the socket peer is used.
+    """
     if settings.TRUST_PROXY:
-        first = request.headers.get("x-forwarded-for", "").split(",")[0].strip()
-        if first:
-            return first
+        joined = ",".join(request.headers.getlist("x-forwarded-for"))
+        entries = [entry.strip() for entry in joined.split(",") if entry.strip()]
+        hops = settings.TRUST_PROXY_HOPS
+        if len(entries) >= hops:
+            return entries[-hops]
     return request.client.host if request.client else "unknown"
 
 
