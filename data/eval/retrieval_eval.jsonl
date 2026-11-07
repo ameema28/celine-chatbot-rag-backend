@@ -1,0 +1,55 @@
+{"id": "en01", "kind": "on_topic", "lang": "en", "difficulty": "normal", "q": "When are you open on Saturdays?", "expected_ids": ["salon_hours"]}
+{"id": "en02", "kind": "on_topic", "lang": "en", "difficulty": "normal", "q": "What's the address of the salon?", "expected_ids": ["salon_location"]}
+{"id": "en03", "kind": "on_topic", "lang": "en", "difficulty": "normal", "q": "How many years has the salon been in business?", "expected_ids": ["salon_profile"]}
+{"id": "en04", "kind": "on_topic", "lang": "en", "difficulty": "normal", "q": "How much does a classic manicure cost?", "expected_ids": ["srv_manicure_detail", "srv_nail_care"]}
+{"id": "en05", "kind": "on_topic", "lang": "en", "difficulty": "normal", "q": "What does your pedicure include?", "expected_ids": ["srv_pedicure_detail", "srv_feet"]}
+{"id": "en06", "kind": "on_topic", "lang": "en", "difficulty": "normal", "q": "How long does a gel manicure last?", "expected_ids": ["srv_gel_application"]}
+{"id": "en07", "kind": "on_topic", "lang": "en", "difficulty": "normal", "q": "Can you fix a broken nail?", "expected_ids": ["srv_nail_repair"]}
+{"id": "en08", "kind": "on_topic", "lang": "en", "difficulty": "normal", "q": "I want to stop biting my nails, can you help?", "expected_ids": ["srv_nail_biting"]}
+{"id": "en09", "kind": "on_topic", "lang": "en", "difficulty": "normal", "q": "Do you do the ombre pink and white nail design?", "expected_ids": ["srv_babyboomer"]}
+{"id": "en10", "kind": "on_topic", "lang": "en", "difficulty": "normal", "q": "How often should I get my gel nails filled?", "expected_ids": ["srv_nail_filling", "policy_aftercare_nails"]}
+{"id": "en11", "kind": "on_topic", "lang": "en", "difficulty": "normal", "q": "What's included in the luxury foot spa?", "expected_ids": ["srv_foot_spa"]}
+{"id": "en12", "kind": "on_topic", "lang": "en", "difficulty": "normal", "q": "How much is waxing for the full legs?", "expected_ids": ["srv_full_leg_wax", "srv_hair_removal_body"]}
+{"id": "en13", "kind": "on_topic", "lang": "en", "difficulty": "normal", "q": "Do you do Brazilian waxing?", "expected_ids": ["srv_full_bikini"]}
+{"id": "en14", "kind": "on_topic", "lang": "en", "difficulty": "normal", "q": "Can I get my underarms waxed?", "expected_ids": ["srv_armpit_wax", "srv_hair_removal_body"]}
+{"id": "en15", "kind": "on_topic", "lang": "en", "difficulty": "normal", "q": "How long do lash extensions last?", "expected_ids": ["srv_eyelash_extensions"]}
+{"id": "en16", "kind": "on_topic", "lang": "en", "difficulty": "normal", "q": "Can you curl my natural lashes without extensions?", "expected_ids": ["srv_eyelash_lift"]}
+{"id": "en17", "kind": "on_topic", "lang": "en", "difficulty": "normal", "q": "Can you dye my eyebrows darker?", "expected_ids": ["srv_eyelash_tinting"]}
+{"id": "en18", "kind": "on_topic", "lang": "en", "difficulty": "normal", "q": "What happens during the Japanese head spa?", "expected_ids": ["srv_head_spa_japanese"]}
+{"id": "en19", "kind": "on_topic", "lang": "en", "difficulty": "normal", "q": "Do you sell hand cream?", "expected_ids": ["srv_hand_creams", "srv_shop"]}
+{"id": "en20", "kind": "on_topic", "lang": "en", "difficulty": "normal", "q": "Can I pay with Twint?", "expected_ids": ["policy_payment"]}
+{"id": "en21", "kind": "on_topic", "lang": "en", "difficulty": "normal", "q": "Is there a discount for first-time clients?", "expected_ids": ["policy_discounts"]}
+{"id": "en22", "kind": "on_topic", "lang": "en", "difficulty": "normal", "q": "Do I have to pay a deposit for eyelash extensions?", "expected_ids": ["policy_deposit"]}
+{"id": "en23", "kind": "on_topic", "lang": "en", "difficulty": "normal", "q": "Can I cancel my appointment the day before for free?", "expected_ids": ["policy_booking"]}
+{"id": "en24", "kind": "on_topic", "lang": "en", "difficulty": "normal", "q": "What should I avoid after a waxing session?", "expected_ids": ["policy_aftercare_wax"]}
+{"id": "fr01", "kind": "on_topic", "lang": "fr", "difficulty": "normal", "q": "Quels sont vos horaires d'ouverture le samedi ?", "expected_ids": ["salon_hours"]}
+{"id": "fr02", "kind": "on_topic", "lang": "fr", "difficulty": "normal", "q": "Où se trouve le salon à Lausanne ?", "expected_ids": ["salon_location"]}
+{"id": "fr03", "kind": "on_topic", "lang": "fr", "difficulty": "normal", "q": "Combien coûte une manucure classique ?", "expected_ids": ["srv_manicure_detail", "srv_nail_care"]}
+{"id": "fr04", "kind": "on_topic", "lang": "fr", "difficulty": "normal", "q": "Que comprend la pédicure ?", "expected_ids": ["srv_pedicure_detail", "srv_feet"]}
+{"id": "fr05", "kind": "on_topic", "lang": "fr", "difficulty": "normal", "q": "Combien de temps tient le vernis semi-permanent ?", "expected_ids": ["srv_semi_permanent"]}
+{"id": "fr06", "kind": "on_topic", "lang": "fr", "difficulty": "normal", "q": "Quel est le prix de l'épilation des jambes complètes ?", "expected_ids": ["srv_full_leg_wax", "srv_hair_removal_body"]}
+{"id": "fr07", "kind": "on_topic", "lang": "fr", "difficulty": "normal", "q": "Proposez-vous l'épilation du maillot ?", "expected_ids": ["srv_full_bikini", "srv_hair_removal_body"]}
+{"id": "fr08", "kind": "on_topic", "lang": "fr", "difficulty": "normal", "q": "Combien coûtent les extensions de cils ?", "expected_ids": ["srv_eyelash_extensions", "srv_eyes"]}
+{"id": "fr09", "kind": "on_topic", "lang": "fr", "difficulty": "normal", "q": "Faites-vous le rehaussement de cils ?", "expected_ids": ["srv_eyelash_lift"]}
+{"id": "fr10", "kind": "on_topic", "lang": "fr", "difficulty": "normal", "q": "Qu'est-ce que le head spa japonais ?", "expected_ids": ["srv_head_spa_japanese"]}
+{"id": "fr11", "kind": "on_topic", "lang": "fr", "difficulty": "normal", "q": "Quelle est votre politique d'annulation ?", "expected_ids": ["policy_booking"]}
+{"id": "fr12", "kind": "on_topic", "lang": "fr", "difficulty": "normal", "q": "Faut-il verser un acompte pour la réservation ?", "expected_ids": ["policy_deposit"]}
+{"id": "fr13", "kind": "on_topic", "lang": "fr", "difficulty": "normal", "q": "Y a-t-il une réduction pour la première fois ?", "expected_ids": ["policy_discounts"]}
+{"id": "fr14", "kind": "on_topic", "lang": "fr", "difficulty": "normal", "q": "Quels moyens de paiement acceptez-vous ?", "expected_ids": ["policy_payment"]}
+{"id": "hd01", "kind": "on_topic", "lang": "en", "difficulty": "hard", "q": "how much is a manicur and pedicur", "expected_ids": ["srv_nail_care", "srv_manicure_detail", "srv_pedicure_detail"]}
+{"id": "hd02", "kind": "on_topic", "lang": "en", "difficulty": "hard", "q": "my nails keep splitting, what can you do?", "expected_ids": ["srv_nail_repair", "srv_strengthening"]}
+{"id": "hd03", "kind": "on_topic", "lang": "en", "difficulty": "hard", "q": "something relaxing for stress, on my head", "expected_ids": ["srv_hair_relaxation", "srv_scalp_massage", "srv_head_spa_japanese", "srv_head_hair"]}
+{"id": "hd04", "kind": "on_topic", "lang": "en", "difficulty": "hard", "q": "and for the feet?", "expected_ids": ["srv_feet", "srv_pedicure_detail", "srv_simple_foot", "srv_foot_spa"]}
+{"id": "hd05", "kind": "on_topic", "lang": "en", "difficulty": "hard", "q": "lashes + brows tint price?", "expected_ids": ["srv_eyelash_tinting", "srv_eyes"]}
+{"id": "hd06", "kind": "on_topic", "lang": "en", "difficulty": "hard", "q": "is the gel thing one where I pay something upfront?", "expected_ids": ["policy_deposit", "srv_gel_application"]}
+{"id": "hd07", "kind": "on_topic", "lang": "en", "difficulty": "hard", "q": "dry flaky scalp help", "expected_ids": ["srv_scalp_moisturizing"]}
+{"id": "hd08", "kind": "on_topic", "lang": "fr", "difficulty": "hard", "q": "épilation lèvre et menton, combien ?", "expected_ids": ["srv_hair_removal_face", "srv_full_face_wax"]}
+{"id": "hd09", "kind": "on_topic", "lang": "fr", "difficulty": "hard", "q": "c'est ouvert le dimanche ?", "expected_ids": ["salon_hours"]}
+{"id": "off01", "kind": "off_topic", "lang": "en", "difficulty": "normal", "q": "What's the weather in Lausanne tomorrow?", "expected_ids": []}
+{"id": "off02", "kind": "off_topic", "lang": "en", "difficulty": "normal", "q": "How do I change a car tyre?", "expected_ids": []}
+{"id": "off03", "kind": "off_topic", "lang": "en", "difficulty": "normal", "q": "Can you recommend a good pizza restaurant?", "expected_ids": []}
+{"id": "off04", "kind": "off_topic", "lang": "en", "difficulty": "normal", "q": "Explain how income tax works in Switzerland.", "expected_ids": []}
+{"id": "off05", "kind": "off_topic", "lang": "en", "difficulty": "normal", "q": "Who won the football world cup?", "expected_ids": []}
+{"id": "off06", "kind": "off_topic", "lang": "en", "difficulty": "normal", "q": "Write me a Python function to sort a list.", "expected_ids": []}
+{"id": "off07", "kind": "off_topic", "lang": "fr", "difficulty": "normal", "q": "Quel temps fera-t-il demain ?", "expected_ids": []}
+{"id": "off08", "kind": "off_topic", "lang": "fr", "difficulty": "normal", "q": "Comment réparer mon vélo ?", "expected_ids": []}

@@ -142,6 +142,23 @@ python scripts/benchmark.py --url https://<service-url> -n 20 --out ../_facts/ce
 - **Two timings:** client times include your network; `response_time_ms` from the server is LLM time only.
 - **Exit status:** the script exits non-zero unless every measured request returned 200.
 
+### Retrieval evaluation (no LLM)
+
+`scripts/eval_retrieval.py` runs every question in `data/eval/retrieval_eval.jsonl` through the app's own retrieval path. It calls `build_turn()`, which applies the French glossary, FAISS search, the 1.20 cutoff and the top-3 limit, and makes no LLM call.
+
+It reports:
+- hit@1, hit@3 and MRR@3, overall and split by English/French and normal/hard;
+- the off-topic rejection rate (questions that get no context at all);
+- the misses.
+
+Results go to `--out`, which must be outside the repository. `tests/test_retrieval_eval.py` fails if any metric drops below the values measured on 2026-11-07.
+
+```bash
+python scripts/eval_retrieval.py --out ../_facts/celine_retrieval_eval.json
+```
+
+The questions are written by the project author (paraphrases, typos, follow-ups, off-topic questions), not taken from real visitors, so the scores describe this set only.
+
 ### Checking the client IP the rate limiter sees
 
 Not yet verified on Cloud Run: whether the right-most `X-Forwarded-For` entry is the visitor's IP or a Google address. After `scripts/smoke_check.py` triggers a 429, the service log has a line `Rate limit exceeded for IP: <ip>`. Compare `<ip>` with your own public IP:
