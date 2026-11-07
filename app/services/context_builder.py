@@ -18,13 +18,27 @@ from app.business_rules import (
 )
 from app.config import settings
 from app.database import vector_db
-from app.language import LANGUAGE_NAMES, detect_language, to_english_query
+from app.language import LANGUAGE_NAMES, _words, detect_language, to_english_query
 from app.spelling import correct_service_words
 
 PHONE = SALON_POLICIES["contact"]["phone"]
 
 PRICING_WORDS = ["price", "cost", "how much", "chf", "discount", "first-time", "vip", "deposit"]
 BOOKING_WORDS = ["book", "appointment", "schedule", "reserve", "cancel"]
+# Checked in this order after the pricing and booking words.
+SERVICE_INTENTS = {
+    "service_nails": ["nail", "manicure", "pedicure", "gel", "varnish"],
+    "service_eyes": ["eye", "lash", "brow", "tint"],
+    "service_waxing": ["hair removal", "wax", "bikini", "leg", "arm", "upper lip", "chin", "cheek"],
+    "service_head_spa": ["head spa", "scalp", "hair wellness", "japanese"],
+    "intent_shop": ["product", "shop", "cream", "skincare", "buy"],
+}
+
+# Follow-ups: a message with no match of its own is searched together with the
+# previous user message if it is this short, starts with a cue, or refers back.
+FOLLOW_UP_MAX_WORDS = 3
+FOLLOW_UP_CUES = ("and", "also", "what about", "how about", "same for", "et", "aussi", "pour")
+FOLLOW_UP_PRONOUNS = {"it", "that", "them", "ca", "cela"}
 
 
 @dataclass
@@ -47,17 +61,26 @@ def classify_intent(user_query: str) -> str:
         return "intent_pricing"
     if any(w in q for w in BOOKING_WORDS):
         return "intent_booking"
-    if any(w in q for w in ["nail", "manicure", "pedicure", "gel", "varnish"]):
-        return "service_nails"
-    if any(w in q for w in ["eye", "lash", "brow", "tint"]):
-        return "service_eyes"
-    if any(w in q for w in ["hair removal", "wax", "bikini", "leg", "arm", "upper lip", "chin", "cheek"]):
-        return "service_waxing"
-    if any(w in q for w in ["head spa", "scalp", "hair wellness", "japanese"]):
-        return "service_head_spa"
-    if any(w in q for w in ["product", "shop", "cream", "skincare", "buy"]):
-        return "intent_shop"
+    for intent, words in SERVICE_INTENTS.items():
+        if any(w in q for w in words):
+            return intent
     return "general_salon_info"
+
+
+def _previous_user_message(history: list[dict]) -> str:
+    for turn in reversed(history):
+        if turn.get("role") == "user" and turn.get("content"):
+            return turn["content"]
+    return ""
+
+
+def _is_follow_up(text: str) -> bool:
+    """Very short, starts with a follow-up cue ("and ...", "et pour ..."), or refers back ("it")."""
+    words = _words(text)  # lowercase, accents removed
+    if not words:
+        return False
+    starts_with_cue = any(" ".join(words).startswith(cue + " ") for cue in FOLLOW_UP_CUES)
+    return len(words) <= FOLLOW_UP_MAX_WORDS or starts_with_cue or bool(FOLLOW_UP_PRONOUNS & set(words))
 
 
 def _business_context(user_query: str) -> str:
@@ -188,6 +211,14 @@ def build_turn(user_query: str, history: list[dict] | None = None) -> Turn:
     english_query = to_english_query(user_query) if lang == "fr" else ""
     corrected = correct_service_words(user_query)
     chunks = _search([user_query, english_query, corrected])
+    previous = _previous_user_message(history)
+    if not chunks and previous and _is_follow_up(user_query):
+        # Follow-up with no match of its own: search it together with the previous
+        # user message. Retrieval only; the prompt and messages keep the real message.
+        follow_up = [f"{correct_service_words(previous)} {corrected}"]
+        if lang == "fr" or detect_language(previous) == "fr":
+            follow_up.append(to_english_query(f"{previous} {user_query}"))
+        chunks = _search(follow_up)
     # Keyword rules are English; French questions are matched via their glossary terms
     # and misspelled service words via their corrected form.
     rule_text = " ".join(t for t in (corrected, english_query) if t)
