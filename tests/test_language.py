@@ -25,6 +25,31 @@ def test_glossary_query():
     assert to_english_query("Bonjour") == ""
 
 
+def test_glossary_opening_hours_and_weekdays():
+    query = to_english_query("c'est ouvert le dimanche ?")
+    assert "open" in query and "hours" in query and "sunday" in query
+    query = to_english_query("Fermé le lundi ?")
+    assert "closed" in query and "monday" in query
+    query = to_english_query("Quels sont les horaires du samedi ?")
+    assert "opening" in query and "saturday" in query
+    days = to_english_query("mardi mercredi jeudi vendredi")
+    assert set(days.split()) == {"tuesday", "wednesday", "thursday", "friday"}
+
+
+def test_hours_words_are_detected_as_french():
+    assert detect_language("ouvert samedi ?") == "fr"
+    assert detect_language("c'est ouvert le dimanche ?") == "fr"
+    assert detect_language("Are you open on Sunday?") == "en"
+
+
+def test_french_hours_question_retrieves_opening_hours():
+    from app.services.context_builder import build_turn
+
+    turn = build_turn("c'est ouvert le dimanche ?")
+    assert turn.lang == "fr"
+    assert "salon_hours" in [chunk["id"] for chunk in turn.chunks]
+
+
 def test_french_question_retrieves_english_entry_and_pricing_intent():
     data = client.post("/api/ai/chat", json={"message": "Combien coûte une manucure ?"}).json()
     assert data["intent"] == "intent_pricing"
