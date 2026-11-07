@@ -71,7 +71,7 @@ docker compose down
 
 ## 3. Session Storage
 
-Sessions are stored in **SQLite** (`sessions.db`), with an in-memory copy as a fallback if SQLite fails. There is no other session store.
+Sessions are stored in **SQLite** (`sessions.db`), with an in-memory copy as a fallback if SQLite fails. There is no other session store. The in-memory copy drops sessions unused for `SESSION_TTL_MINUTES` (default 60) and keeps at most `SESSION_MEMORY_MAX_SESSIONS` (default 1000); SQLite is not affected.
 
 ---
 
@@ -198,6 +198,8 @@ pytest tests/ -p no:cacheprovider --cov=app --cov-report=term-missing --cov-fail
 | `CORS_ALLOW_ORIGINS` | No | localhost:3000, :5173, :5500, 127.0.0.1:5500 | Comma-separated browser origins allowed to call the API |
 | `RAG_MAX_L2_DISTANCE` | No | `1.20` | FAISS relevance cutoff (squared L2; lower is stricter) |
 | `SESSIONS_DB_PATH` | No | `./sessions.db` (Docker image: `/tmp/sessions.db`) | SQLite session file |
+| `SESSION_TTL_MINUTES` | No | `60` | In-memory session copy: drop sessions unused for this many minutes |
+| `SESSION_MEMORY_MAX_SESSIONS` | No | `1000` | In-memory session copy: maximum sessions kept (least recently used dropped first) |
 | `TRUST_PROXY` | No | `false` | Take the client IP for rate limiting from `X-Forwarded-For` (only behind a proxy that appends it) |
 | `TRUST_PROXY_HOPS` | No | `1` | With `TRUST_PROXY=true`: use the entry this many places from the right (1 = right-most); entries further left are ignored |
 | `PORT` | No | `7860` (Docker image) | Port the container listens on; Cloud Run sets it to 8080 |

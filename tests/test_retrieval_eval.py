@@ -2,8 +2,10 @@
 
 The gate runs the whole eval set through the app's own retrieval path
 (build_turn: French glossary, FAISS, cutoff, top-3). No LLM is involved.
-Thresholds are the values measured on 2026-11-07, identical on Windows
-(venv) and Linux (python:3.11-slim image): any drop fails the test.
+Thresholds are measured values: first set on 2026-11-07 (identical on Windows
+venv and Linux python:3.11-slim image); overall, fr and hard raised to the values
+re-measured on 2026-11-08 (Windows venv only). Thresholds are only ever raised.
+Any drop fails the test.
 """
 
 import importlib.util
@@ -20,11 +22,11 @@ ev = importlib.util.module_from_spec(_SPEC)
 _SPEC.loader.exec_module(ev)
 
 MEASURED = {
-    "overall": {"hit_at_1": 0.8298, "hit_at_3": 0.8936, "mrr_at_3": 0.8617},
+    "overall": {"hit_at_1": 0.8511, "hit_at_3": 0.9149, "mrr_at_3": 0.8830},
     "en": {"hit_at_1": 0.7742, "hit_at_3": 0.8710, "mrr_at_3": 0.8226},
-    "fr": {"hit_at_1": 0.9375, "hit_at_3": 0.9375, "mrr_at_3": 0.9375},
+    "fr": {"hit_at_1": 1.0000, "hit_at_3": 1.0000, "mrr_at_3": 1.0000},
     "normal": {"hit_at_1": 0.8947, "hit_at_3": 0.9474, "mrr_at_3": 0.9211},
-    "hard": {"hit_at_1": 0.5556, "hit_at_3": 0.6667, "mrr_at_3": 0.6111},
+    "hard": {"hit_at_1": 0.6667, "hit_at_3": 0.7778, "mrr_at_3": 0.7222},
 }
 MEASURED_OFF_TOPIC_REJECTION = 1.0
 
