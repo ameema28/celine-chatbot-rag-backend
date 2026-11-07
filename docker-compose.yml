@@ -1,18 +1,21 @@
-version: '3.8'
-
 services:
   celine-ai:
     build: .
     container_name: celine-ai-backend
     ports:
       - "8000:8000"
+    # Optional: without .env the API runs in offline fallback mode.
     env_file:
-      - .env
+      - path: .env
+        required: false
+    environment:
+      PORT: "8000"
+      SESSIONS_DB_PATH: /home/user/data/sessions.db
     volumes:
-      # Persist SQLite sessions across container restarts
-      - ./sessions.db:/app/sessions.db
-      # Optional: mount live data for updates without rebuild
-      - ./data:/app/data
+      # Persist SQLite sessions across container restarts (named volume).
+      - celine-sessions:/home/user/data
+      # Optional: mount live data for updates without rebuild (read-only)
+      - ./data:/app/data:ro
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
@@ -20,3 +23,6 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+
+volumes:
+  celine-sessions:

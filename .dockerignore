@@ -28,3 +28,9 @@ build/
 *.swp
 *.swo
 .DS_Store
+.ruff_cache/
+tests/
+scripts/
+deploy/
+.github/
+*.md
