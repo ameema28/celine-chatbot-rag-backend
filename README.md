@@ -9,7 +9,7 @@ Built during my TechNexus internship for a real client (Celine Esthetique, Lausa
 
 ## Live demo
 
-**LIVE_URL_TODO**
+Live demo: deploying this week (link coming soon).
 
 The first request after a quiet period may be slow while the service starts.
 
@@ -70,7 +70,7 @@ Measured on 2026-11-07 (commit 2bc9668). Docker figures are from a local build a
 | Off-topic rejection | 8 of 8 off-topic questions got no context at the 1.20 cutoff |
 | Docker image | 2.32 GB (539 MB compressed content); PyTorch `2.3.1+cpu`, no CUDA |
 | Docker runtime | runs as uid 1000; starts with networking disabled; 10.9 s from `docker run` to the first `/health` 200; 400.7 MiB RAM after one chat |
-| Live latency (p50 / p95) | LATENCY_TODO |
+| Live latency (p50 / p95) | to be measured after deployment |
 
 **Retrieval evaluation.** `scripts/eval_retrieval.py` runs each question through the app's own retrieval path (language detection, French glossary, FAISS, cutoff, top 3) with no LLM. The set (`data/eval/retrieval_eval.jsonl`) is **written by the project author, not real user traffic**: 47 on-topic questions (31 English, 16 French, 9 of them deliberately hard: typos, indirect wording, short follow-ups) and 8 off-topic questions. The scores describe this set only. Results were identical on Windows and in the Linux image.
 
