@@ -112,6 +112,24 @@ The same image runs on Cloud Run unchanged. Cloud Run sets `PORT=8080` and the c
 - **Rate limit:** 10 requests per minute per client IP, in memory, for one instance. `/`, `/health`, `/docs`, `/redoc`, `/openapi.json` and CORS preflights are not counted.
 - **No auth:** anyone with the URL can chat. Anyone who has a `session_id` can continue that session.
 
+### Post-deploy smoke check
+
+`scripts/smoke_check.py` (Python stdlib only, no API key) checks a deployed URL. It writes a JSON summary to `--out`, which must be outside the repository.
+
+```bash
+python scripts/smoke_check.py --url https://<service-url> --out ../_facts/celine_smoke.json
+```
+
+What it checks:
+- `/health` and the demo page at `/`.
+- One English and one French `/api/ai/chat`, both expecting `fallback_used=false`. The French reply is printed for you to read; its language is not checked automatically.
+- One `/api/ai/chat/stream`.
+- A price-guard question ("CHF 30" for a manicure; the knowledge base says CHF 45).
+- The rate limit, sending empty messages that cost no LLM call.
+- Whether spoofed `X-Forwarded-For` entries get around the rate limit.
+
+It makes about 4 live LLM calls per run and takes about 2.5 minutes (two waits of 61 s for fresh rate-limit windows). `--skip-rate-limit` skips the last two checks.
+
 ### Checking the client IP the rate limiter sees
 
 Not yet verified on Cloud Run: whether the right-most `X-Forwarded-For` entry is the visitor's IP or a Google address. After `scripts/smoke_check.py` triggers a 429, the service log has a line `Rate limit exceeded for IP: <ip>`. Compare `<ip>` with your own public IP:
@@ -127,7 +145,7 @@ A workflow is provided in `.github/workflows/ci.yml`.
 **What it does:**
 - Triggers on push and pull request to `main` or `master`
 - Installs Python 3.11, `requirements.txt` and `requirements-dev.txt` (pip cached)
-- Runs `ruff check app/ tests/` (blocking)
+- Runs `ruff check app/ tests/ scripts/` (blocking)
 - Runs the full pytest suite with a coverage gate (`--cov-fail-under=94`)
 - Needs **no API key**: the tests mock Groq, so CI makes no paid LLM calls
 
@@ -135,7 +153,7 @@ A workflow is provided in `.github/workflows/ci.yml`.
 
 ```bash
 pip install -r requirements.txt -r requirements-dev.txt
-ruff check app/ tests/
+ruff check app/ tests/ scripts/
 pytest tests/ -p no:cacheprovider --cov=app --cov-report=term-missing --cov-fail-under=94
 ```
 
