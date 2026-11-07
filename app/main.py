@@ -65,12 +65,11 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title=settings.PROJECT_NAME,
     version=settings.VERSION,
-    description="Production-grade AI concierge for Celine Esthetique luxury salon. RAG-powered with FAISS, Groq LLM, session memory, business rules, and real-time SSE streaming.",
+    description="AI concierge for Celine Esthetique salon. RAG with FAISS, Groq LLM, session memory, business rules, CHF price guard and SSE streaming.",
     contact={
         "name": "Ameema Rashid — AI Lead",
         "email": "ameema.rashid@technexusvu.com"
     },
-    license_info={"name": "MIT", "url": "https://opensource.org/licenses/MIT"},
     lifespan=lifespan
 )
 
