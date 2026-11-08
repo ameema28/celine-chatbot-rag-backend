@@ -273,7 +273,7 @@ def fallback_reply(turn: Turn) -> str:
     if turn.chunks:
         return (
             f"{turn.chunks[0]['answer']} "
-            "Would you like help scheduling an appointment?"
+            f"To book, call us at {PHONE}."
         )
     return f"Please contact us at {PHONE}."
 

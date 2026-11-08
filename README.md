@@ -65,7 +65,7 @@ Tests, coverage and the retrieval evaluation were measured on 2026-11-08 in the 
 
 | Area | Result |
 |---|---|
-| Tests | 222 pytest tests: 221 passed, 1 skipped (it needs Node.js, which the image does not have); no API key needed (LLM mocked) |
+| Tests | 225 pytest tests: 224 passed, 1 skipped (it needs Node.js, which the image does not have); no API key needed (LLM mocked) |
 | Coverage | 96.69% line coverage (CI fails below 94%) |
 | Retrieval evaluation | hit@1 0.85, hit@3 0.91, MRR@3 0.88 on 47 questions (see below) |
 | Off-topic rejection | 8 of 8 off-topic questions got no context at the 1.20 cutoff |

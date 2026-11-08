@@ -25,7 +25,13 @@ def test_english_fallback_has_no_greeting():
     second = _chat("What is included in a pedicure?", first["session_id"])
     assert EN_GREETING not in first["reply"]
     assert "CHF 45" in first["reply"]
-    assert second["reply"].endswith("Would you like help scheduling an appointment?")
+    assert second["reply"].endswith(f"To book, call us at {PHONE}.")
+    assert "scheduling an appointment" not in first["reply"] + second["reply"]
+
+
+def test_french_fallback_booking_line_unchanged():
+    reply = _chat("Combien coûte une manucure ?")["reply"]
+    assert reply.endswith(f"Souhaitez-vous prendre rendez-vous ? Appelez-nous au {PHONE}.")
 
 
 def test_french_fallback_has_no_greeting():

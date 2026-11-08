@@ -130,6 +130,42 @@ def test_newest_reply_start_is_kept_in_view():
     assert 'window.visualViewport.addEventListener("resize", keepNewestVisible)' in body
 
 
+EXPECTED_INTENT_LABELS = {
+    "intent_pricing": "Pricing question",
+    "intent_booking": "Booking & policies",
+    "service_eyes": "Eyes & lashes",
+    "service_nails": "Nails",
+    "service_waxing": "Waxing",
+    "service_head_spa": "Head spa",
+    "intent_shop": "Shop",
+    "general_salon_info": "General salon info",
+}
+
+
+def test_intent_labels_mapping_in_served_page():
+    from app.services.context_builder import SERVICE_INTENTS
+
+    body = client.get("/").text
+    block = re.search(r"const INTENT_LABELS = \{(.*?)\};", body, re.DOTALL).group(1)
+    labels = dict(re.findall(r'(\w+): "([^"]+)"', block))
+    assert labels == EXPECTED_INTENT_LABELS
+    # Every intent the backend can return has a label.
+    backend_intents = set(SERVICE_INTENTS) | {"intent_pricing", "intent_booking", "general_salon_info"}
+    assert backend_intents == set(labels)
+    assert "`${INTENT_LABELS[intent]} (${intent})`" in body
+    assert 'row("Intent", intentLabel(data.intent));' in body
+
+
+def test_status_line_is_short_on_phones():
+    body = client.get("/").text
+    assert '"Online · live answers"' in body
+    assert '"Online · offline answers"' in body
+    assert re.search(
+        r"@media \(max-width: 600px\) \{\s*\.status-long \{ display: none; \}\s*\.status-short \{ display: inline; \}",
+        body,
+    )
+
+
 def test_missing_meta_marker_fails_loudly(tmp_path, monkeypatch):
     page = tmp_path / "demo.html"
     page.write_text("<html><head></head></html>", encoding="utf-8")
