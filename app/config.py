@@ -1,4 +1,3 @@
-import os
 from pathlib import Path
 
 from pydantic import Field
@@ -47,10 +46,5 @@ class Settings(BaseSettings):
         extra="ignore"
     )
 
+# Environment variables take precedence over values in .env (pydantic-settings default).
 settings = Settings()
-
-# Phase 7: CI/CD fix — environment variables take precedence over .env file
-# GitHub Actions injects secrets as env vars; this ensures they are not
-# overwritten by an empty or placeholder value in .env
-if os.environ.get("GROQ_API_KEY"):
-    settings.GROQ_API_KEY = os.environ.get("GROQ_API_KEY")

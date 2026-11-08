@@ -75,17 +75,11 @@ def _startup_tasks():
         logger.info(f"Model: {settings.GROQ_MODEL_NAME}")
     else:
         logger.warning("GROQ_API_KEY loaded: no")
-    logger.info("Streaming: ENABLED")
-    logger.info("Business Rules: ENABLED")
-    logger.info("CORS: ENABLED")
-    logger.info("SQLite Sessions: ENABLED")
-    logger.info("Rate Limiting: ENABLED")
-    logger.info("Memory Cleanup: ENABLED")
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Phase 7: Modern FastAPI lifespan event handler (replaces deprecated on_event)."""
+    """Startup and shutdown logging."""
     _startup_tasks()
     yield
     logger.info(f"Shutting down {settings.PROJECT_NAME}")
