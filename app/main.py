@@ -15,6 +15,7 @@ from pydantic import BaseModel, Field
 
 from app import llm
 from app.config import settings
+from app.database import vector_db
 from app.services.rag_service import generate_rag_response
 from app.services.streaming_service import generate_streaming_rag_response
 from app.session_store import load_session, save_session
@@ -67,6 +68,7 @@ def _cleanup_rate_limit_store():
 def _startup_tasks():
     """Run once at server startup."""
     logger.info(f"Starting {settings.PROJECT_NAME} v{settings.VERSION}")
+    logger.info(f"FAISS index: {vector_db.index.ntotal} knowledge base entries")
     # Never log any part of the key itself, only whether live mode is possible.
     if llm.groq_key_usable():
         logger.info("GROQ_API_KEY loaded: yes")

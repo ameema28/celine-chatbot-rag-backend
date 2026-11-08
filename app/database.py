@@ -28,16 +28,19 @@ class VectorDatabase:
             for doc in self.documents
         ]
 
-        embeddings = self.encoder.encode(corpus_texts, convert_to_numpy=True)
+        # show_progress_bar=False: sentence-transformers otherwise prints a tqdm bar
+        # to stderr for every encode call whenever its logger is at INFO.
+        embeddings = self.encoder.encode(corpus_texts, convert_to_numpy=True, show_progress_bar=False)
         dimension = embeddings.shape[1]
 
         self.index = faiss.IndexFlatL2(dimension)
         self.index.add(embeddings.astype("float32"))
-        print(f"Successfully indexed {self.index.ntotal} knowledge base segments into FAISS.")
 
     def search_with_scores(self, query: str, top_k: int = 3) -> list[tuple[dict, float]]:
         """Top-k documents with their squared L2 distance (lower is closer)."""
-        query_vector = self.encoder.encode([query], convert_to_numpy=True).astype("float32")
+        query_vector = self.encoder.encode(
+            [query], convert_to_numpy=True, show_progress_bar=False
+        ).astype("float32")
         distances, indices = self.index.search(query_vector, top_k)
         return [
             (self.documents[idx], float(dist))
