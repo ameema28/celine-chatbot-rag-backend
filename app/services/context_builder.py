@@ -54,15 +54,20 @@ class Turn:
     lang: str = "en"
 
 
+def _mentions(text: str, words: list[str]) -> bool:
+    """True if a keyword starts a word in the text ("leg" matches "legs", not "elegant")."""
+    return any(re.search(rf"\b{re.escape(w)}", text) for w in words)
+
+
 def classify_intent(user_query: str) -> str:
     """Keyword intent tag (pricing keywords are checked first)."""
     q = user_query.lower()
-    if any(w in q for w in PRICING_WORDS):
+    if _mentions(q, PRICING_WORDS):
         return "intent_pricing"
-    if any(w in q for w in BOOKING_WORDS):
+    if _mentions(q, BOOKING_WORDS):
         return "intent_booking"
     for intent, words in SERVICE_INTENTS.items():
-        if any(w in q for w in words):
+        if _mentions(q, words):
             return intent
     return "general_salon_info"
 
@@ -85,7 +90,7 @@ def _is_follow_up(text: str) -> bool:
 
 def _business_context(user_query: str) -> str:
     q = user_query.lower()
-    if any(w in q for w in PRICING_WORDS):
+    if _mentions(q, PRICING_WORDS):
         return (
             "\n\nPRICING RULES:\n"
             f"- VIP: {SALON_POLICIES['discounts']['vip']['percentage']}% off\n"
@@ -93,7 +98,7 @@ def _business_context(user_query: str) -> str:
             f"- Luxury deposit: {int(SALON_POLICIES['deposits']['luxury_rate'] * 100)}%\n"
             f"- {get_cancellation_policy()}\n"
         )
-    if any(w in q for w in BOOKING_WORDS):
+    if _mentions(q, BOOKING_WORDS):
         return (
             "\n\nBOOKING RULES:\n"
             f"- {get_cancellation_policy()}\n"
