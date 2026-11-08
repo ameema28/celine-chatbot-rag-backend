@@ -3,6 +3,7 @@
 from fastapi.testclient import TestClient
 
 from app import main
+from app.services.context_builder import build_turn, fallback_reply
 from tests.sse_utils import sse_events, sse_text
 
 client = TestClient(main.app)
@@ -37,7 +38,7 @@ def test_stream_groq_error_falls_back_to_context(live_llm):
     live_llm.raise_exc = RuntimeError("simulated outage")
     streamed = sse_text(client.post("/api/ai/chat/stream", json={"message": QUESTION}).text)
     assert "I apologize" not in streamed
-    assert streamed.startswith("Welcome to Celine Esthetique.")
+    assert streamed == fallback_reply(build_turn(QUESTION))
     assert chat_fallback.status_code == 200
 
 

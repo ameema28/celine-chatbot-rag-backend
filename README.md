@@ -101,7 +101,7 @@ uvicorn app.main:app --reload
 
 On Linux, to avoid the large default PyTorch download, install the CPU build first: `pip install torch==2.3.1 --index-url https://download.pytorch.org/whl/cpu`.
 
-Open http://127.0.0.1:8000/ for the demo page or http://127.0.0.1:8000/docs for Swagger UI. Without a Groq key the API runs in offline fallback mode (the best retrieved answer, with a greeting on the first reply of a session). The demo page shows "n/a (offline fallback)" as the response time for these replies, because they are not timed.
+Open http://127.0.0.1:8000/ for the demo page or http://127.0.0.1:8000/docs for Swagger UI. Without a Groq key the API runs in offline fallback mode (the best retrieved answer, or the salon's phone number when nothing matches). The demo page shows "n/a (offline fallback)" as the response time for these replies, because they are not timed.
 
 **With Docker Compose:**
 

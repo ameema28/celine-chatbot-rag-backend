@@ -58,9 +58,7 @@ def test_french_question_retrieves_english_entry_and_pricing_intent():
 
 def test_french_no_key_fallback_is_honest_about_english_data():
     data = client.post("/api/ai/chat", json={"message": "Combien coûte une manucure ?"}).json()
-    assert data["reply"].startswith(
-        "Bienvenue chez Celine Esthetique. Voici l'information disponible (en anglais) :"
-    )
+    assert data["reply"].startswith("Voici l'information disponible (en anglais) :")
 
 
 def test_french_prompt_rule_on_chat_and_stream(live_llm):

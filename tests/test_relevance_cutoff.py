@@ -7,7 +7,7 @@ from app.config import Settings, settings
 from app.database import vector_db
 
 client = TestClient(main.app)
-PHONE_FALLBACK = "Welcome to Celine Esthetique. Please contact us at +41 78 949 40 39."
+PHONE_FALLBACK = "Please contact us at +41 78 949 40 39."
 
 
 def test_default_cutoff():

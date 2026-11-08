@@ -1,4 +1,4 @@
-"""Offline fallback: the greeting is used only on the first reply of a session."""
+"""Offline fallback never greets: the demo page already shows a welcome message."""
 
 from fastapi.testclient import TestClient
 
@@ -20,41 +20,31 @@ def _chat(message: str, session_id: str | None = None) -> dict:
     return client.post("/api/ai/chat", json=body).json()
 
 
-def test_english_greeting_only_on_first_reply():
+def test_english_fallback_has_no_greeting():
     first = _chat("How much is a manicure?")
     second = _chat("What is included in a pedicure?", first["session_id"])
-    assert first["reply"].startswith(EN_GREETING)
-    assert EN_GREETING not in second["reply"]
+    assert EN_GREETING not in first["reply"]
+    assert "CHF 45" in first["reply"]
     assert second["reply"].endswith("Would you like help scheduling an appointment?")
 
 
-def test_french_greeting_only_on_first_reply():
+def test_french_fallback_has_no_greeting():
     first = _chat("Combien coûte une manucure ?")
-    second = _chat("Combien coûte une pédicure ?", first["session_id"])
-    assert first["reply"].startswith(FR_GREETING)
-    assert FR_GREETING not in second["reply"]
-    assert second["reply"].startswith("Voici l'information disponible (en anglais) :")
+    assert FR_GREETING not in first["reply"]
+    assert first["reply"].startswith("Voici l'information disponible (en anglais) :")
 
 
-def test_no_context_reply_without_greeting_on_later_turns():
-    first = _chat("How much is a manicure?")
-    second = _chat("Who won the football world cup?", first["session_id"])
-    assert second["reply"] == f"Please contact us at {PHONE}."
-
-
-def test_stream_greets_only_on_first_reply():
-    response = client.post("/api/ai/chat/stream", json={"message": "How much is a manicure?"})
-    session_id = response.headers["x-session-id"]
-    assert sse_text(response.text).startswith(EN_GREETING)
-    later = client.post(
-        "/api/ai/chat/stream", json={"message": "What is included in a pedicure?", "session_id": session_id}
+def test_no_context_reply():
+    assert _chat("Who won the football world cup?")["reply"] == f"Please contact us at {PHONE}."
+    assert fallback_reply(build_turn("Qui a gagné la coupe du monde de football ?")) == (
+        f"Veuillez nous contacter au {PHONE}."
     )
-    assert EN_GREETING not in sse_text(later.text)
 
 
-def test_first_reply_flag_from_history():
-    assert build_turn("Hello").first_reply is True
-    history = [{"role": "user", "content": "Hi"}, {"role": "assistant", "content": "Hello!"}]
-    turn = build_turn("Combien coûte une manucure ?", history)
-    assert turn.first_reply is False
-    assert not fallback_reply(turn).startswith(FR_GREETING)
+def test_stream_fallback_has_no_greeting():
+    response = client.post("/api/ai/chat/stream", json={"message": "How much is a manicure?"})
+    assert EN_GREETING not in sse_text(response.text)
+
+
+def test_demo_page_still_greets_once():
+    assert client.get("/").text.count(EN_GREETING) == 1
