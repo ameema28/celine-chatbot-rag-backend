@@ -11,7 +11,7 @@ from pathlib import Path
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from app import llm
 from app.config import settings
@@ -214,6 +214,9 @@ async def unhandled_error_handler(request: Request, exc: Exception):
 
 
 class ChatRequest(BaseModel):
+    # Surrounding whitespace is stripped before the length checks, so a blank message is a 422.
+    model_config = ConfigDict(str_strip_whitespace=True)
+
     message: str = Field(..., min_length=1, max_length=500, description="User message to the AI concierge.")
     # Letters, digits, "-" and "_" only: the ID is written to logs and SQLite.
     session_id: str | None = Field(
