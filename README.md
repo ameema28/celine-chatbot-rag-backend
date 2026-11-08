@@ -119,6 +119,8 @@ Sessions are kept in a named volume.
 | `POST` | `/api/ai/chat` | JSON reply: `reply`, `intent`, `session_id`, `fallback_used`, `response_time_ms`, `retrieved_context` |
 | `POST` | `/api/ai/chat/stream` | Same pipeline as Server-Sent Events, ends with `[DONE]` |
 
+Request body for both POST routes: `message` (1-500 characters) and an optional `session_id` (letters, digits, `-` and `_`, at most 64 characters; anything else gets a 422).
+
 ### Environment variables
 
 | Variable | Default | Meaning |

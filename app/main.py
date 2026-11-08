@@ -215,7 +215,13 @@ async def unhandled_error_handler(request: Request, exc: Exception):
 
 class ChatRequest(BaseModel):
     message: str = Field(..., min_length=1, max_length=500, description="User message to the AI concierge.")
-    session_id: str | None = Field(None, description="Existing session ID for memory continuity. Omit to start a new session.")
+    # Letters, digits, "-" and "_" only: the ID is written to logs and SQLite.
+    session_id: str | None = Field(
+        None,
+        max_length=64,
+        pattern=r"^[A-Za-z0-9_-]+$",
+        description="Existing session ID for memory continuity (letters, digits, - and _; max 64). Omit to start a new session.",
+    )
 
 
 class ChatResponse(BaseModel):
