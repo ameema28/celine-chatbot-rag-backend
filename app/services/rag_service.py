@@ -9,7 +9,6 @@ from app.price_guard import guard_reply
 from app.services.context_builder import build_turn, fallback_reply
 
 logger = logging.getLogger(__name__)
-GROQ_MODEL = settings.GROQ_MODEL_NAME
 
 
 def generate_rag_response(
@@ -23,16 +22,14 @@ def generate_rag_response(
     fallback_used = False
     response_time_ms = 0
 
-    if not settings.GROQ_API_KEY:
-        logger.error(f"[{session_id}] GROQ_API_KEY missing")
-        fallback_used = True
-    elif not llm.groq_key_usable():
-        logger.warning(f"[{session_id}] GROQ_API_KEY appears to be a placeholder")
+    key_status = llm.key_status()
+    if key_status != "ok":
+        logger.warning(f"[{session_id}] No usable GROQ_API_KEY ({key_status}): offline fallback")
         fallback_used = True
     else:
         try:
             start_time = time.time()
-            logger.info(f"[{session_id}] Calling Groq: {GROQ_MODEL}")
+            logger.info(f"[{session_id}] Calling Groq: {settings.GROQ_MODEL_NAME}")
             client = llm.get_groq_client()
             completion = client.chat.completions.create(**llm.completion_kwargs(turn.messages))
             choice = completion.choices[0]

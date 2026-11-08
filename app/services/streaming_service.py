@@ -18,8 +18,9 @@ def build_stream_reply(
     """The full, price-guarded reply (blocking: embedding search and the Groq stream)."""
     turn = build_turn(user_query, history)
 
-    if not llm.groq_key_usable():
-        logger.warning(f"[{session_id}] No usable GROQ_API_KEY: streaming offline fallback")
+    key_status = llm.key_status()
+    if key_status != "ok":
+        logger.warning(f"[{session_id}] No usable GROQ_API_KEY ({key_status}): offline fallback")
         reply = fallback_reply(turn)
     else:
         try:

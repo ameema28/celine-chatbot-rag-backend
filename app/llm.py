@@ -9,10 +9,19 @@ import groq
 from app.config import settings
 
 
+def key_status() -> str:
+    """'ok', 'missing' or 'placeholder' (a your_... value or shorter than 20 characters)."""
+    key = settings.GROQ_API_KEY or ""
+    if not key:
+        return "missing"
+    if key.startswith("your_") or len(key) < 20:
+        return "placeholder"
+    return "ok"
+
+
 def groq_key_usable() -> bool:
     """True when the configured key looks real (not missing, not a placeholder)."""
-    key = settings.GROQ_API_KEY or ""
-    return bool(key) and not key.startswith("your_") and len(key) >= 20
+    return key_status() == "ok"
 
 
 def get_groq_client() -> groq.Groq:
