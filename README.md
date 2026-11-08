@@ -25,9 +25,9 @@ A visitor asks about services, prices, opening hours or the booking policy of Ce
 - **English and French:** language detection, a "reply in the customer's language" rule in the prompt, and a French glossary (services, prices, booking, opening hours and weekdays) that adds English search terms for retrieval. The knowledge base itself is English.
 - **Typos and follow-ups (retrieval only):** misspelled service words close to a known service name are corrected with the standard-library `difflib` ("peducure" → "pedicure"); numbers and prices are never changed. A message with no match of its own that looks like a follow-up ("and for the feet?") is searched together with the previous user message. The prompt always shows the real message.
 - **Pricing rules in code:** VIP 10% and first-time 15% discounts (VIP wins, they never stack), 20% deposit on luxury services and the cancellation policy. Computed figures are put into the prompt as exact numbers.
-- **CHF price guard:** a reply that quotes a CHF amount that is not in the salon data or the computed figures is replaced, on both the JSON and the streaming endpoint. Amounts typed by the user are not accepted as proof.
+- **CHF price guard:** a reply that quotes a franc amount (written `CHF 45`, `45 CHF`, `Fr. 45`, `45 francs` or `45.-`) that is not in the salon data or the computed figures is replaced, on both the JSON and the streaming endpoint. Amounts typed by the user are not accepted as proof.
 - **Streaming:** `POST /api/ai/chat/stream` (Server-Sent Events) uses the same retrieval, prompt, key check and fallback as the JSON endpoint.
-- **Session memory:** the last 12 messages per session in SQLite. The in-memory fallback copy drops sessions idle for `SESSION_TTL_MINUTES` and keeps at most `SESSION_MEMORY_MAX_SESSIONS`.
+- **Session memory:** each session's history is kept in SQLite and the last 12 messages are sent to the model with each question. The in-memory fallback copy drops sessions idle for `SESSION_TTL_MINUTES` and keeps at most `SESSION_MEMORY_MAX_SESSIONS`.
 - **Operational safeguards:** 10 requests per minute per client IP, optional trusted-proxy handling that uses the right-most `X-Forwarded-For` hop (spoofed left entries are ignored), an environment-driven CORS allowlist, security headers on the demo page (a Content-Security-Policy with hashes of its inline script and style, `nosniff`, no framing), and logs that never contain any part of the API key or the message text.
 - **Demo page** served by the API at `/`: example questions in English and French, a typing indicator, a mobile layout, and a "Show details" toggle per reply (intent, retrieved sources, response time, fallback flag).
 - **Docker image** with CPU-only PyTorch, a non-root user and the embedding model baked in, plus GitHub Actions CI (blocking ruff, tests with a 94% coverage gate, no API key).
@@ -61,12 +61,12 @@ flowchart TD
 
 ## Results
 
-Tests, coverage and the retrieval evaluation were measured on 2026-11-08 (Windows, Python 3.11.9). Docker figures were measured on 2026-11-07 from a local build and run, not from the hosted demo.
+Tests, coverage and the retrieval evaluation were measured on 2026-11-08 in the project's Docker image (Linux, Python 3.11); the retrieval scores are the same as on Windows. Docker size and runtime figures were measured on 2026-11-07 from a local build and run, not from the hosted demo.
 
 | Area | Result |
 |---|---|
-| Tests | 141 pytest tests, all passing, no API key needed (LLM mocked) |
-| Coverage | 96.05% line coverage (CI fails below 94%) |
+| Tests | 222 pytest tests: 221 passed, 1 skipped (it needs Node.js, which the image does not have); no API key needed (LLM mocked) |
+| Coverage | 96.69% line coverage (CI fails below 94%) |
 | Retrieval evaluation | hit@1 0.85, hit@3 0.91, MRR@3 0.88 on 47 questions (see below) |
 | Off-topic rejection | 8 of 8 off-topic questions got no context at the 1.20 cutoff |
 | Docker image | 2.32 GB (539 MB compressed content); PyTorch `2.3.1+cpu`, no CUDA |

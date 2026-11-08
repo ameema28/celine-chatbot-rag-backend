@@ -1,7 +1,5 @@
 # Celine Esthetique AI Backend — Deployment Guide
 
-## Phase 7: Production Deployment, Containerization & CI/CD
-
 ---
 
 ## 1. Local Development (Existing)
@@ -151,7 +149,7 @@ It reports:
 - the off-topic rejection rate (questions that get no context at all);
 - the misses.
 
-Results go to `--out`, which must be outside the repository. `tests/test_retrieval_eval.py` fails if any metric drops below the values measured on 2026-11-07.
+Results go to `--out`, which must be outside the repository. `tests/test_retrieval_eval.py` fails if any metric drops below the measured floors (first set on 2026-11-07, raised to the 2026-11-08 values; they are only ever raised).
 
 ```bash
 python scripts/eval_retrieval.py --out ../_facts/celine_retrieval_eval.json
@@ -210,17 +208,19 @@ pytest tests/ -p no:cacheprovider --cov=app --cov-report=term-missing --cov-fail
 
 ## 6. Production Checklist
 
+For the Cloud Run demo (section 3a):
+
 | # | Item | Status |
 |:---|:---|:---|
-| 1 | `.env` created and secrets filled | [ ] |
-| 2 | `docker-compose up` runs without errors | [ ] |
-| 3 | Health check `GET /health` returns 200 | [ ] |
-| 4 | `POST /api/ai/chat` returns valid JSON | [ ] |
-| 5 | `POST /api/ai/chat/stream` returns SSE stream | [ ] |
-| 6 | pytest suite passes with no API key (`pytest tests/ -v`) | [ ] |
-| 7 | Rate limiting tested (11th request returns 429) | [ ] |
-| 8 | CORS enabled for frontend origin | [ ] |
-| 9 | GitHub Actions pipeline is green | [ ] |
+| 1 | GitHub Actions pipeline is green on the deployed commit | [ ] |
+| 2 | `GROQ_API_KEY` stored in Secret Manager and exposed to the service; no key in env vars or the image | [ ] |
+| 3 | Service settings as in 3a: max instances 1, `TRUST_PROXY=true`, `CORS_ALLOW_ORIGINS` set to the service URL | [ ] |
+| 4 | `GET /health` returns 200 with `llm_ready: true` | [ ] |
+| 5 | `scripts/smoke_check.py` passes (live English and French chat, stream, price guard, rate limit) | [ ] |
+| 6 | Rate-limit IP checked in the logs ("Checking the client IP the rate limiter sees") | [ ] |
+| 7 | Demo page checked on desktop and a phone | [ ] |
+
+For a local or Compose run: `.env` is optional (offline fallback without a key), `docker compose up -d`, then the same `/health` and chat checks.
 
 ---
 
