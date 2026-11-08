@@ -49,7 +49,7 @@ class FakeGroq:
         if kwargs.get("stream"):
             return iter(
                 SimpleNamespace(choices=[SimpleNamespace(delta=SimpleNamespace(content=part))])
-                for part in re.findall(r"\S+\s*", self.reply)
+                for part in re.findall(r"\S+\s*", self.reply or "")
             )
         return SimpleNamespace(
             choices=[SimpleNamespace(message=SimpleNamespace(content=self.reply))]

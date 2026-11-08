@@ -34,15 +34,20 @@ def generate_rag_response(
             start_time = time.time()
             logger.info(f"[{session_id}] Calling Groq: {GROQ_MODEL}")
             client = llm.get_groq_client()
-            completion = client.chat.completions.create(
-                model=GROQ_MODEL,
-                messages=turn.messages,
-                temperature=0.3,
-                max_tokens=200,
-            )
-            ai_reply = completion.choices[0].message.content
+            completion = client.chat.completions.create(**llm.completion_kwargs(turn.messages))
+            choice = completion.choices[0]
+            ai_reply = (choice.message.content or "").strip()
             response_time_ms = int((time.time() - start_time) * 1000)
-            logger.info(f"[{session_id}] Groq success in {response_time_ms}ms")
+            finish_reason = getattr(choice, "finish_reason", None)
+            if not ai_reply:
+                # e.g. the token budget was used up by reasoning: no answer text.
+                logger.warning(f"[{session_id}] Empty model reply (finish_reason={finish_reason})")
+                fallback_used = True
+                response_time_ms = 0
+            else:
+                logger.info(f"[{session_id}] Groq success in {response_time_ms}ms")
+                if finish_reason == "length":
+                    logger.warning(f"[{session_id}] Model reply cut at the token limit")
 
             if response_time_ms > 4000:
                 logger.warning(f"[{session_id}] SLOW: {response_time_ms}ms > 4s target")

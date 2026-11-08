@@ -2,12 +2,10 @@ import logging
 from collections.abc import AsyncGenerator
 
 from app import llm
-from app.config import settings
 from app.price_guard import guard_reply
 from app.services.context_builder import build_turn, fallback_reply, word_chunks
 
 logger = logging.getLogger(__name__)
-GROQ_MODEL = settings.GROQ_MODEL_NAME
 
 
 async def generate_streaming_rag_response(
@@ -28,19 +26,16 @@ async def generate_streaming_rag_response(
     else:
         try:
             client = llm.get_groq_client()
-            stream = client.chat.completions.create(
-                model=GROQ_MODEL,
-                messages=turn.messages,
-                temperature=0.3,
-                max_tokens=200,
-                stream=True,
-            )
+            stream = client.chat.completions.create(**llm.completion_kwargs(turn.messages, stream=True))
             parts = []
             for chunk in stream:
                 content = chunk.choices[0].delta.content
                 if content:
                     parts.append(content)
-            reply = "".join(parts) or fallback_reply(turn)
+            reply = "".join(parts).strip()
+            if not reply:
+                logger.warning(f"[{session_id}] Empty model reply: streaming offline fallback")
+                reply = fallback_reply(turn)
         except Exception as e:  # noqa: BLE001 - any LLM failure must degrade to the fallback
             logger.error(f"[{session_id}] Streaming error: {type(e).__name__}: {e}")
             reply = fallback_reply(turn)
