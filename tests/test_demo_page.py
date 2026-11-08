@@ -88,6 +88,42 @@ def test_response_time_format_runs_in_node():
     assert json.loads(out.stdout) == ["n/a (offline fallback)", "< 1 ms", "812 ms"]
 
 
+def test_french_example_buttons_are_marked_french():
+    body = client.get("/").text
+    assert body.count('data-lang="fr" lang="fr"') == 2
+
+
+def test_status_line_uses_plain_words_not_model_or_version():
+    body = client.get("/").text
+    assert "data.llm_ready" in body
+    assert "data.model" not in body
+    assert "data.version" not in body
+
+
+def test_visitor_error_messages_are_friendly():
+    body = client.get("/").text
+    assert "if (status === 429)" in body
+    assert "Please wait a minute and try again." in body
+    assert "something went wrong on our side" in body
+    # A non-JSON error body (e.g. a proxy 502 page) must not look like a network failure.
+    assert "try { data = await response.json(); } catch (e)" in body
+    assert "Could not connect to AI service" not in body
+
+
+def test_mobile_layout_rules_present():
+    body = client.get("/").text
+    assert "height: 100dvh;" in body
+    assert "flex-wrap: nowrap; overflow-x: auto;" in body
+    assert "@media (max-width: 600px), (max-height: 640px)" in body
+    assert "min-height: 300px" not in body
+
+
+def test_newest_reply_start_is_kept_in_view():
+    body = client.get("/").text
+    assert "node.offsetHeight > chatBox.clientHeight ? node.offsetTop : chatBox.scrollHeight" in body
+    assert 'window.visualViewport.addEventListener("resize", keepNewestVisible)' in body
+
+
 def test_missing_meta_marker_fails_loudly(tmp_path, monkeypatch):
     page = tmp_path / "demo.html"
     page.write_text("<html><head></head></html>", encoding="utf-8")

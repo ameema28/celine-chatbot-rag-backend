@@ -8,13 +8,15 @@
     <title>Celine Esthetique - AI Concierge Demo</title>
     <style>
         * { box-sizing: border-box; }
-        body { font-family: 'Segoe UI', system-ui, sans-serif; max-width: 640px; margin: 0 auto; padding: 24px 16px; background: #f9f9f9; color: #1a1a1a; }
-        h1 { text-align: center; font-size: 1.5rem; margin: 0 0 8px; }
-        .status { text-align: center; color: #666; font-size: 14px; margin-bottom: 16px; }
-        .examples { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
-        .example-btn { padding: 8px 12px; border: 1px solid #d4af37; border-radius: 16px; background: white; color: #1a1a1a; font-size: 14px; cursor: pointer; }
-        .example-btn:hover, .example-btn:focus-visible { background: #fbf3dc; }
-        .chat-box { border: 1px solid #ddd; border-radius: 12px; padding: 16px; background: white; min-height: 300px; max-height: 60vh; overflow-y: auto; }
+        html, body { height: 100%; margin: 0; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f9f9f9; color: #1a1a1a; }
+        /* Full-height column: header, chat log (takes the remaining height), examples, input. */
+        .app { display: flex; flex-direction: column; height: 100vh; height: 100dvh; max-width: 640px; margin: 0 auto; padding: 0 16px; }
+        header { padding: 16px 0 10px; text-align: center; }
+        h1 { font-size: 1.5rem; margin: 0 0 6px; }
+        .status { color: #666; font-size: 14px; margin: 0; }
+        .status.offline { color: #a01818; }
+        .chat-box { position: relative; flex: 1; min-height: 0; overflow-y: auto; border: 1px solid #ddd; border-radius: 12px; padding: 12px 16px; background: white; }
         .message { margin: 10px 0; padding: 10px 15px; border-radius: 18px; max-width: 85%; overflow-wrap: anywhere; white-space: pre-wrap; }
         .user { background: #d4af37; margin-left: auto; text-align: right; }
         .bot { background: #f9e4e0; }
@@ -31,42 +33,63 @@
         .typing span:nth-child(3) { animation-delay: 0.4s; }
         @keyframes blink { 0%, 80%, 100% { opacity: 0.25; } 40% { opacity: 1; } }
         @media (prefers-reduced-motion: reduce) { .typing span { animation: none; opacity: 0.6; } }
-        .input-area { display: flex; gap: 8px; margin-top: 16px; }
+        .examples { display: flex; flex-wrap: wrap; gap: 8px; padding: 10px 0 0; }
+        .example-btn { padding: 8px 12px; border: 1px solid #d4af37; border-radius: 16px; background: white; color: #1a1a1a; font-size: 14px; cursor: pointer; }
+        .example-btn:hover, .example-btn:focus-visible { background: #fbf3dc; }
+        .input-area { display: flex; gap: 8px; padding: 10px 0 calc(16px + env(safe-area-inset-bottom)); }
         input { flex: 1; min-width: 0; padding: 12px; border: 1px solid #ddd; border-radius: 24px; font-size: 16px; }
         button.send { padding: 12px 20px; background: #d4af37; border: none; border-radius: 24px; color: #1a1a1a; font-weight: bold; font-size: 16px; cursor: pointer; }
         button.send:hover { background: #c5a028; }
         button:disabled { opacity: 0.6; cursor: wait; }
-        @media (max-width: 480px) {
-            body { padding: 16px 12px; }
-            h1 { font-size: 1.25rem; }
+        /* Phones: one horizontally scrolling row of examples, so the chat log keeps
+           its height when the keyboard is open. */
+        @media (max-width: 600px) {
+            .examples { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+            .examples::-webkit-scrollbar { display: none; }
+            .example-btn { flex: none; white-space: nowrap; }
             .message, .details { max-width: 95%; }
             button.send { padding: 12px 16px; }
+        }
+        /* Narrow or short screens: a compact header leaves more height for the chat log. */
+        @media (max-width: 600px), (max-height: 640px) {
+            .app { padding: 0 12px; }
+            header { padding: 8px 0 6px; }
+            h1 { font-size: 1.05rem; margin-bottom: 2px; }
+            .status { font-size: 12px; }
+            .chat-box { padding: 8px 12px; }
+            .examples { padding-top: 8px; }
+            .input-area { padding: 8px 0 calc(10px + env(safe-area-inset-bottom)); }
         }
     </style>
 </head>
 <body>
-    <h1>Celine Esthetique - AI Concierge</h1>
-    <div class="status" id="status">Checking API status...</div>
+<div class="app">
+    <header>
+        <h1>Celine Esthetique - AI Concierge</h1>
+        <p class="status" id="status">Connecting...</p>
+    </header>
+
+    <div class="chat-box" id="chatBox" role="log" aria-live="polite">
+        <div class="message bot">Welcome to Celine Esthetique. How may I assist you today?</div>
+    </div>
 
     <div class="examples" aria-label="Example questions">
         <button type="button" class="example-btn" data-lang="en" data-question="How much is a manicure?">How much is a manicure?</button>
         <button type="button" class="example-btn" data-lang="en" data-question="What is your cancellation policy?">What is your cancellation policy?</button>
-        <button type="button" class="example-btn" data-lang="fr" data-question="Combien coûte une pédicure ?">Combien coûte une pédicure ?</button>
-        <button type="button" class="example-btn" data-lang="fr" data-question="Proposez-vous des extensions de cils ?">Proposez-vous des extensions de cils ?</button>
-    </div>
-
-    <div class="chat-box" id="chatBox" aria-live="polite">
-        <div class="message bot">Welcome to Celine Esthetique. How may I assist you today?</div>
+        <button type="button" class="example-btn" data-lang="fr" lang="fr" data-question="Combien coûte une pédicure ?">Combien coûte une pédicure ?</button>
+        <button type="button" class="example-btn" data-lang="fr" lang="fr" data-question="Proposez-vous des extensions de cils ?">Proposez-vous des extensions de cils ?</button>
     </div>
     <form class="input-area" id="chatForm">
         <input type="text" id="messageInput" maxlength="500" placeholder="Ask about our services..." aria-label="Your message" autocomplete="off">
         <button type="submit" class="send" id="sendBtn">Send</button>
     </form>
+</div>
 
     <script>
         // API base URL, in order: ?api=https://your-host, then the celine-api-base
         // meta tag (empty = this page's own origin), then the local default.
         const LOCAL_API_BASE = "http://127.0.0.1:8000";
+        const PHONE = "+41 78 949 40 39";
         function defaultApiBase() {
             const meta = document.querySelector('meta[name="celine-api-base"]');
             if (!meta) return LOCAL_API_BASE;
@@ -89,32 +112,54 @@
         const API_URL = `${API_BASE}/api/ai/chat`;
         let sessionId = null;
         let busy = false;
+        let newestReply = null;
 
         const chatBox = document.getElementById("chatBox");
         const input = document.getElementById("messageInput");
         const sendBtn = document.getElementById("sendBtn");
+        const statusLine = document.getElementById("status");
         const exampleButtons = document.querySelectorAll(".example-btn");
 
-        // Check API health on load
+        // Status line in plain words: live model, offline answers, or unreachable.
         fetch(`${API_BASE}/health`)
-            .then(r => r.json())
+            .then(r => { if (!r.ok) throw new Error(); return r.json(); })
             .then(data => {
-                document.getElementById("status").textContent =
-                    `API: ${data.status} | Model: ${data.model} | Version: ${data.version}`;
+                statusLine.textContent = data.llm_ready
+                    ? "Online · AI answers from the salon's information"
+                    : "Online · offline mode: answers come straight from the salon's information";
             })
             .catch(() => {
-                const status = document.getElementById("status");
-                status.textContent = "API offline. Start the server first.";
-                status.style.color = "red";
+                statusLine.textContent = `The concierge is unavailable right now. Please call us at ${PHONE}.`;
+                statusLine.classList.add("offline");
             });
+
+        // Messages a visitor sees when a request fails.
+        function errorText(status) {
+            if (status === 429) return "You're sending messages quickly. Please wait a minute and try again.";
+            if (status === 422) return "Please type a message of up to 500 characters.";
+            return `Sorry, something went wrong on our side. Please try again, or call us at ${PHONE}.`;
+        }
+        const NETWORK_ERROR = "Can't reach the concierge right now. Please check your connection and try again.";
 
         function scrollToEnd() { chatBox.scrollTop = chatBox.scrollHeight; }
 
-        function addMessage(text, sender) {
+        // Keep the newest reply in view. If it is taller than the chat log, show its
+        // start (not its end); otherwise scroll to the bottom. .chat-box is
+        // position: relative, so offsetTop is measured inside it.
+        function showNewest(node) {
+            if (!node) return;
+            chatBox.scrollTop = node.offsetHeight > chatBox.clientHeight ? node.offsetTop : chatBox.scrollHeight;
+        }
+        // The on-screen keyboard shrinks the log after a reply; scroll again then.
+        function keepNewestVisible() { showNewest(newestReply); }
+        window.addEventListener("resize", keepNewestVisible);
+        if (window.visualViewport) window.visualViewport.addEventListener("resize", keepNewestVisible);
+
+        function addMessage(text, sender, parent) {
             const div = document.createElement("div");
             div.className = `message ${sender}`;
             div.textContent = text;
-            chatBox.appendChild(div);
+            (parent || chatBox).appendChild(div);
             scrollToEnd();
             return div;
         }
@@ -133,7 +178,7 @@
         }
 
         // "Show details" lists only fields the API returned for this reply.
-        function addDetails(data) {
+        function addDetails(data, parent) {
             const details = document.createElement("details");
             details.className = "details";
             const summary = document.createElement("summary");
@@ -171,8 +216,9 @@
                 row("Sources", "none matched");
             }
             details.appendChild(dl);
-            chatBox.appendChild(details);
-            scrollToEnd();
+            // Opening the details changes the reply's height: keep it in view.
+            details.addEventListener("toggle", () => showNewest(parent));
+            parent.appendChild(details);
         }
 
         function setBusy(value) {
@@ -194,22 +240,28 @@
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ message: message, session_id: sessionId })
                 });
-                const data = await response.json();
+                let data = null;
+                try { data = await response.json(); } catch (e) { /* non-JSON body */ }
                 typing.remove();
-                if (!response.ok) {
-                    const detail = typeof data.detail === "string" ? data.detail : `Request failed (HTTP ${response.status}).`;
-                    addMessage(detail, "error");
+                if (!response.ok || !data) {
+                    addMessage(errorText(response.status), "error");
                     return;
                 }
                 if (data.session_id) sessionId = data.session_id;
-                addMessage(data.reply, "bot");
-                addDetails(data);
+                // The reply and its details form one block, scrolled into view together.
+                const turn = document.createElement("div");
+                chatBox.appendChild(turn);
+                addMessage(data.reply, "bot", turn);
+                addDetails(data, turn);
+                newestReply = turn;
+                showNewest(turn);
             } catch (err) {
                 typing.remove();
-                addMessage("Error: Could not connect to AI service.", "error");
+                addMessage(NETWORK_ERROR, "error");
             } finally {
                 setBusy(false);
-                input.focus();
+                // On touch screens focusing would open the keyboard over the new reply.
+                if (!window.matchMedia("(pointer: coarse)").matches) input.focus();
             }
         }
 
