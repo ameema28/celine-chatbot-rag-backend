@@ -1,4 +1,7 @@
+import base64
+import hashlib
 import logging
+import re
 import time
 import uuid
 from collections import OrderedDict
@@ -114,6 +117,30 @@ def _load_demo_page() -> str:
 
 
 DEMO_PAGE_HTML = _load_demo_page()
+
+
+def _csp_hash(html: str, tag: str) -> str:
+    """CSP source for the page's single inline <script> or <style> block."""
+    blocks = re.findall(rf"<{tag}>(.*?)</{tag}>", html, flags=re.DOTALL)
+    if len(blocks) != 1:
+        raise RuntimeError(f"demo.html must have exactly one inline <{tag}> block")
+    digest = hashlib.sha256(blocks[0].encode("utf-8")).digest()
+    return f"'sha256-{base64.b64encode(digest).decode()}'"
+
+
+# The served page calls only its own origin; ?api= overrides are for the file
+# served from elsewhere (python -m http.server), not for this page.
+DEMO_PAGE_HEADERS = {
+    "Content-Security-Policy": (
+        "default-src 'none'; "
+        f"script-src {_csp_hash(DEMO_PAGE_HTML, 'script')}; "
+        f"style-src {_csp_hash(DEMO_PAGE_HTML, 'style')}; "
+        "connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
+    ),
+    "X-Content-Type-Options": "nosniff",
+    "X-Frame-Options": "DENY",
+    "Referrer-Policy": "no-referrer",
+}
 
 
 def _client_ip(request: Request) -> str:
@@ -323,7 +350,7 @@ async def ai_chat_stream_endpoint(payload: ChatRequest):
 @app.get("/", include_in_schema=False, response_class=HTMLResponse)
 def demo_page():
     """The chat demo page; it calls the API on this same origin."""
-    return HTMLResponse(DEMO_PAGE_HTML)
+    return HTMLResponse(DEMO_PAGE_HTML, headers=DEMO_PAGE_HEADERS)
 
 
 @app.get("/health", tags=["System"], summary="Health and status check")

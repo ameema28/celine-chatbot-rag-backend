@@ -19,7 +19,7 @@ Open http://127.0.0.1:8000/docs for interactive Swagger UI.
 
 ### Demo page
 
-The API serves the demo itself at `GET /` (for example http://127.0.0.1:8000/). Served this way the page calls the API on its own origin, so CORS is not involved.
+The API serves the demo itself at `GET /` (for example http://127.0.0.1:8000/). Served this way the page calls the API on its own origin, so CORS is not involved. Its Content-Security-Policy (`connect-src 'self'`) also means the `?api=` override only works on a copy of `demo.html` served from elsewhere, as below.
 
 To open `demo.html` from another server instead: CORS only allows the origins in `CORS_ALLOW_ORIGINS` (default: localhost ports 3000, 5173 and 5500). A page opened directly from disk (`file://`) sends `Origin: null` and is blocked, so serve the demo:
 

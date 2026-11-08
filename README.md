@@ -28,7 +28,7 @@ A visitor asks about services, prices, opening hours or the booking policy of Ce
 - **CHF price guard:** a reply that quotes a CHF amount that is not in the salon data or the computed figures is replaced, on both the JSON and the streaming endpoint. Amounts typed by the user are not accepted as proof.
 - **Streaming:** `POST /api/ai/chat/stream` (Server-Sent Events) uses the same retrieval, prompt, key check and fallback as the JSON endpoint.
 - **Session memory:** the last 12 messages per session in SQLite. The in-memory fallback copy drops sessions idle for `SESSION_TTL_MINUTES` and keeps at most `SESSION_MEMORY_MAX_SESSIONS`.
-- **Operational safeguards:** 10 requests per minute per client IP, optional trusted-proxy handling that uses the right-most `X-Forwarded-For` hop (spoofed left entries are ignored), an environment-driven CORS allowlist, and logs that never contain any part of the API key or the message text.
+- **Operational safeguards:** 10 requests per minute per client IP, optional trusted-proxy handling that uses the right-most `X-Forwarded-For` hop (spoofed left entries are ignored), an environment-driven CORS allowlist, security headers on the demo page (a Content-Security-Policy with hashes of its inline script and style, `nosniff`, no framing), and logs that never contain any part of the API key or the message text.
 - **Demo page** served by the API at `/`: example questions in English and French, a typing indicator, a mobile layout, and a "Show details" toggle per reply (intent, retrieved sources, response time, fallback flag).
 - **Docker image** with CPU-only PyTorch, a non-root user and the embedding model baked in, plus GitHub Actions CI (blocking ruff, tests with a 94% coverage gate, no API key).
 
