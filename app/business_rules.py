@@ -28,10 +28,13 @@ SALON_POLICIES = {
 
 _CENT = Decimal("0.01")
 
-# "CHF 45", "CHF 45.50", "CHF 45,50", ranges "CHF 35-50", and "45 CHF".
+# Swiss franc amounts: "CHF 45", "CHF 45.50", "CHF 45,50", ranges "CHF 35-50",
+# "45 CHF", "Fr. 45" / "SFr. 45", "45 francs" / "45 fr." and the Swiss "45.-".
+_AMOUNT = r"\d+(?:[.,]\d{1,2})?"
 _CHF_PATTERN = re.compile(
-    r"CHF\s*(\d+(?:[.,]\d{1,2})?)(?:\s*[-–]\s*(\d+(?:[.,]\d{1,2})?))?"
-    r"|(\d+(?:[.,]\d{1,2})?)\s*CHF",
+    rf"(?:CHF|\bS?Frs?\.?)\s*({_AMOUNT})(?:\s*[-–]\s*({_AMOUNT}))?"
+    rf"|({_AMOUNT})\s*(?:CHF|francs?\b|frs?\b\.?)"
+    r"|\b(\d+)\.[-–]",
     re.IGNORECASE,
 )
 

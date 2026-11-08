@@ -202,6 +202,7 @@ def _system_prompt(chunks: list[dict], business_context: str, lang: str = "en") 
         f"If the context does not contain the answer, say so politely and offer the phone number {PHONE}. "
         "Only quote CHF prices that appear in the verified context or the computed prices; "
         "never restate other amounts as prices. "
+        "Write every price as CHF followed by the amount (for example CHF 45), in every language. "
         "Quote only the services the customer asked about, not the whole price list; "
         "mention the VIP and first-time discounts in one short sentence at most. "
         f"{_language_rule(lang)}"

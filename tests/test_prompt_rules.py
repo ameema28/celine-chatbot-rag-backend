@@ -29,6 +29,10 @@ def test_prompt_forbids_booking_promises_and_points_to_phone():
     assert "help schedule an appointment" not in prompt
 
 
+def test_prompt_asks_for_chf_notation():
+    assert "Write every price as CHF followed by the amount" in _prompt("Combien coûte une manucure ?")
+
+
 def test_prompt_asks_for_asked_services_only():
     assert "not the whole price list" in _prompt("How much is a manicure?")
 

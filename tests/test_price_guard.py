@@ -24,6 +24,26 @@ def test_check_reply_unit():
     assert check_reply("No prices here, call +41 78 949 40 39.") == (True, [])
 
 
+def test_other_franc_notations_are_checked():
+    for reply in ("Une manucure coûte 999 francs.", "Fr. 999 seulement", "SFr. 999",
+                  "999 fr. la séance", "Nur 999.- heute", "999.– pour vous"):
+        assert check_reply(reply) == (False, [Decimal("999.00")]), reply
+    for reply in ("Une manucure coûte 45 francs.", "Fr. 45", "45.-", "45 Fr."):
+        assert check_reply(reply) == (True, []), reply
+
+
+def test_franc_notation_does_not_match_ordinary_words():
+    for reply in ("Open 7 days, 45 friendly staff", "Rue du 23 Juin 4, 1003 Lausanne",
+                  "Call +41 78 949 40 39.", "Free 30 minute consultation"):
+        assert check_reply(reply) == (True, []), reply
+
+
+def test_french_invented_franc_price_replaced(live_llm):
+    live_llm.reply = "La manucure coûte 999 francs."
+    data = client.post("/api/ai/chat", json={"message": "Combien coûte une manucure ?"}).json()
+    assert data["reply"] == safe_message("fr")
+
+
 def test_invented_price_replaced_and_persisted(live_llm):
     live_llm.reply = "Our manicure costs CHF 999."
     data = client.post("/api/ai/chat", json={"message": "How much is a manicure?"}).json()
