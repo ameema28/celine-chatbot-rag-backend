@@ -41,6 +41,12 @@ def test_root_not_in_openapi_schema():
     assert "/" not in client.get("/openapi.json").json()["paths"]
 
 
+def test_openapi_has_no_contact_email():
+    schema = client.get("/openapi.json")
+    assert "email" not in schema.json()["info"].get("contact", {})
+    assert "@" not in schema.text.split('"paths"')[0]
+
+
 def test_served_page_has_two_english_and_two_french_example_buttons():
     body = client.get("/").text
     assert body.count('class="example-btn" data-lang="en"') == 2

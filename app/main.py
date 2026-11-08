@@ -89,10 +89,7 @@ app = FastAPI(
     title=settings.PROJECT_NAME,
     version=settings.VERSION,
     description="AI concierge for Celine Esthetique salon. RAG with FAISS, Groq LLM, session memory, business rules, CHF price guard and SSE streaming.",
-    contact={
-        "name": "Ameema Rashid — AI Lead",
-        "email": "ameema.rashid@technexusvu.com"
-    },
+    contact={"name": "Ameema Rashid — AI Lead"},
     lifespan=lifespan
 )
 
