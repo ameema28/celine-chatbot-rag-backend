@@ -105,7 +105,7 @@ The same image runs on Cloud Run unchanged. Cloud Run sets `PORT=8080` and the c
 
 ### Health, cold start and what resets
 
-- **`GET /health`** needs no auth and is not rate limited. `llm_ready` only means a key is set, not that Groq accepted it. Use `fallback_used` in a `/api/ai/chat` reply to confirm the live model. Uvicorn opens the port only after the app (and the embedding model) has loaded, so the default TCP startup probe already waits for a ready app; `/health` can also be used as an HTTP startup probe.
+- **`GET /health`** needs no auth and is not rate limited. `llm_ready` only means a usable-looking key is set (not missing, not a `your_...` placeholder, at least 20 characters), not that Groq accepted it. Use `fallback_used` in a `/api/ai/chat` reply to confirm the live model. Uvicorn opens the port only after the app (and the embedding model) has loaded, so the default TCP startup probe already waits for a ready app; `/health` can also be used as an HTTP startup probe.
 - **Cold start:** measured locally at 10.9 s from `docker run` to the first `/health` 200 (this PC, image already on disk). On Cloud Run a cold start also includes starting the instance and loading the image; it is **not measured yet**.
 - **Scale to zero:** with minimum instances 0, an idle service is shut down, and the next visitor waits for a cold start.
 - **Sessions reset:** sessions are SQLite in `/tmp`, which is in memory and belongs to one instance. They are **lost on every restart, new revision or scale to zero**. A visitor's old `session_id` then simply has no history.

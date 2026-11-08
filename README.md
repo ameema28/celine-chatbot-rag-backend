@@ -115,7 +115,7 @@ Sessions are kept in a named volume.
 | Method | Path | Description |
 |---|---|---|
 | `GET` | `/` | Demo chat page |
-| `GET` | `/health` | Status, model name, whether a key is set |
+| `GET` | `/health` | Status, model name, whether a usable key is set (`llm_ready`) |
 | `POST` | `/api/ai/chat` | JSON reply: `reply`, `intent`, `session_id`, `fallback_used`, `response_time_ms`, `retrieved_context` |
 | `POST` | `/api/ai/chat/stream` | Same pipeline as Server-Sent Events, ends with `[DONE]` |
 

@@ -155,7 +155,8 @@ async def rate_limit_middleware(request: Request, call_next):
         logger.warning(f"Rate limit exceeded for IP: {client_ip}")
         return JSONResponse(
             status_code=429,
-            content={"detail": "Rate limit exceeded. Max 10 requests per minute."}
+            content={"detail": "Rate limit exceeded. Max 10 requests per minute."},
+            headers={"Retry-After": "60"},
         )
 
     RATE_LIMIT_STORE[client_ip].append(now)
@@ -174,6 +175,13 @@ app.add_middleware(
     allow_headers=["Content-Type"],
     expose_headers=["X-Session-Id"],
 )
+
+
+@app.exception_handler(Exception)
+async def unhandled_error_handler(request: Request, exc: Exception):
+    """Unexpected errors return the same JSON shape as other errors ({"detail": ...})."""
+    logger.error(f"Unhandled error on {request.url.path}: {type(exc).__name__}")
+    return JSONResponse(status_code=500, content={"detail": "Internal server error."})
 
 
 class ChatRequest(BaseModel):
@@ -326,7 +334,7 @@ def health_check():
         "service": settings.PROJECT_NAME,
         "version": settings.VERSION,
         "model": settings.GROQ_MODEL_NAME,
-        "llm_ready": bool(settings.GROQ_API_KEY),
+        "llm_ready": llm.groq_key_usable(),
         "session_store": "sqlite",
         "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
     }
